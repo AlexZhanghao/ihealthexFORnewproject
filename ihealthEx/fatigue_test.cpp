@@ -6,11 +6,14 @@
 
 #include "Matrix.h"
 
+#define BOYDET_TIME 0.1
+
 double Force_Fc = 0.3;
 double Force_a = 0.3;
 double Force_b = 1;
 	
 unsigned int __stdcall TestThread(PVOID pParam);
+unsigned int __stdcall AcquisitionThread(PVOID pParam);
 
 void FatigueTest::Initial(HWND hWnd) {
 	m_hWnd = hWnd;
@@ -29,7 +32,10 @@ bool FatigueTest::IsInitialed() {
 }
 
 void FatigueTest::StartTest() {
+	//主动运动线程
 	test_thread = (HANDLE)_beginthreadex(NULL, 0, TestThread, this, 0, NULL);
+	//传感器开启线程
+	acquisition_thread= (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
 }
 
 void FatigueTest::StartMove() {
@@ -65,76 +71,6 @@ void FatigueTest::StartMove() {
 
 		Sleep(100);
 	}
-	//in_test_move = true;
-	//int counter = 0;
-	//LARGE_INTEGER frequency {0};
-	//LARGE_INTEGER begin { 0 };
-	//LARGE_INTEGER end { 0 };
-	//QueryPerformanceFrequency(&frequency);
-
-	////m_pFileWriter->Initial();
-	////m_pFileWriter->WriteHeader();
-
-	//while (true) {
-	//	if (!in_test_move) {
-	//		break;
-	//	}
-	//	/*if (counter > 36000) {
-	//		counter = 0;
-	//		m_pFileWriter->CloseFile();
-	//		m_pFileWriter->Initial();
-	//		m_pFileWriter->WriteHeader();
-	//	}
-	//	m_pControlCard->SetClutch(CLUTCH_ON);
-	//	m_pControlCard->SetMotor(MOTOR_ON);
-	//	m_pControlCard->MotorAbsoluteMove(SHOULDER_AXIS_ID, 40, 2);
-	//	m_pControlCard->MotorAbsoluteMove(ELBOW_AXIS_ID, 40, 2);*/
-
-	//	QueryPerformanceCounter(&begin);
-	//	while (!m_pControlCard->IsMoveFinish()) {
-	//		QueryPerformanceCounter(&end);
-	//		double time = (end.QuadPart - begin.QuadPart) * 1000.0 / frequency.QuadPart;
-	//		if (time < 100.0) {
-	//			SwitchToThread();
-	//		} else {
-	//			AcquisiteData();
-	//			UpdataDataArray();
-	//			PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
-	//			//WriteDataToFile(counter);
-	//			/*if (IsErrorHappened()) {
-	//				StopMove();
-	//				m_pFileWriter->CloseFile();
-	//				::PostQuitMessage(0L);
-	//			}*/
-	//			QueryPerformanceCounter(&begin);
-	//			++counter;
-	//		}
-	//	}
-
-	//	m_pControlCard->MotorAbsoluteMove(SHOULDER_AXIS_ID, 0, 2);
-	//	m_pControlCard->MotorAbsoluteMove(ELBOW_AXIS_ID, 0, 2);
-	//	QueryPerformanceCounter(&begin);
-	//	while (!m_pControlCard->IsMoveFinish()) {
-	//		QueryPerformanceCounter(&end);
-	//		double time = (end.QuadPart - begin.QuadPart) * 1000.0 / frequency.QuadPart;
-	//		if (time < 100.0) {
-	//			SwitchToThread();
-	//		} else {
-	//			AcquisiteData();
-	//			UpdataDataArray();
-	//			PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
-	//			WriteDataToFile(counter);
-	//			if (IsErrorHappened()) {
-	//				StopMove();
-	//				m_pFileWriter->CloseFile();
-	//				::PostQuitMessage(0L);
-	//			}
-	//			QueryPerformanceCounter(&begin);
-	//			++counter;
-	//		}
-	//	}
-	//}
-	//m_pFileWriter->CloseFile();
 }
 
 void FatigueTest::StopMove() {
@@ -245,6 +181,36 @@ unsigned int __stdcall TestThread(PVOID pParam) {
 		return 1;
 	}
 	mTest->StartMove();
+}
+
+unsigned int __stdcall AcquisitionThread(PVOID pParam) {
+	FatigueTest *Bydetect = (FatigueTest*)pParam;
+	UINT oldTickCount, newTickCount;
+	oldTickCount = GetTickCount();
+	while (TRUE)
+	{
+		if (Bydetect->m_stop)
+			break;
+		//延时 BOYDET_TIME s
+		while (TRUE)
+		{
+			newTickCount = GetTickCount();
+			if (newTickCount - oldTickCount >= BOYDET_TIME * 1000)
+			{
+				oldTickCount = newTickCount;
+				break;
+			}
+			else
+			{
+				SwitchToThread();
+				::Sleep(5);
+			}
+		}
+		if (Bydetect->m_stop)
+			break;
+	}
+
+	Bydetect->AcquisiteData();
 }
 
 void FatigueTest::Raw2Trans(double RAWData[6], double DistData[6]) {

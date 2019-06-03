@@ -18,6 +18,7 @@ public:
 	void StopMove();
 	void AbsoluteMove();
 	bool IsErrorHappened();
+	void AcquisiteData();
 
 public:
 	HWND m_hWnd;
@@ -32,8 +33,10 @@ public:
 	double elbow_torque_curve[500] { 0 };
 	double shoulder_torque_curve[500] { 0 };
 	double x_axis[500] { 0 };
+
+	bool m_stop = true;
+
 private:
-	void AcquisiteData();
 	void WriteDataToFile(int index);
 	void UpdataDataArray();
 	void UpdataDataArray(double buf[6]);
@@ -52,6 +55,7 @@ private:
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
 	HANDLE test_thread = nullptr;
+	HANDLE acquisition_thread = nullptr;
 
 	double m_shoulder_vel;
 	double m_elbow_vel;
