@@ -45,12 +45,6 @@ public:
 	double elbow_position_in_degree;
 	double shoulder_error_in_degree;
 	double elbow_error_in_degree;
-	double shoulder_moment;
-	double elbow_moment;
-	double shoulder_tau;
-	double elbow_tau;
-	double shoulder_difference;
-	double elbow_difference;
 
 private:
 	bool axis_status_;
