@@ -13,7 +13,7 @@ double Force_a = 0.3;
 double Force_b = 1;
 	
 unsigned int __stdcall TestThread(PVOID pParam);
-unsigned int __stdcall AcquisitionThread(PVOID pParam);
+//unsigned int __stdcall AcquisitionThread(PVOID pParam);
 
 void FatigueTest::Initial(HWND hWnd) {
 	m_hWnd = hWnd;
@@ -34,8 +34,8 @@ bool FatigueTest::IsInitialed() {
 void FatigueTest::StartTest() {
 	//主动运动线程
 	test_thread = (HANDLE)_beginthreadex(NULL, 0, TestThread, this, 0, NULL);
-	//传感器开启线程
-	acquisition_thread= (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
+	////传感器开启线程
+	//acquisition_thread= (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
 }
 
 void FatigueTest::StartMove() {
@@ -66,8 +66,8 @@ void FatigueTest::StartMove() {
 
 		//注意这里我们传入的顺序是fxfyfzMxMyMz,现在传的是裸值，以后如果你要传入
 		//经过转换后的值的话，传入的顺序也要是fxfyfzMxMyMz(转换后的值力和力矩的位置是交换了的)
-		UpdataDataArray(readings);
-		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
+		//UpdataDataArray(moments);
+		//PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
 
 		Sleep(100);
 	}
@@ -183,35 +183,37 @@ unsigned int __stdcall TestThread(PVOID pParam) {
 	mTest->StartMove();
 }
 
-unsigned int __stdcall AcquisitionThread(PVOID pParam) {
-	FatigueTest *Bydetect = (FatigueTest*)pParam;
-	UINT oldTickCount, newTickCount;
-	oldTickCount = GetTickCount();
-	while (TRUE)
-	{
-		if (Bydetect->m_stop)
-			break;
-		//延时 BOYDET_TIME s
-		while (TRUE)
-		{
-			newTickCount = GetTickCount();
-			if (newTickCount - oldTickCount >= BOYDET_TIME * 1000)
-			{
-				oldTickCount = newTickCount;
-				break;
-			}
-			else
-			{
-				SwitchToThread();
-				::Sleep(5);
-			}
-		}
-		if (Bydetect->m_stop)
-			break;
-	}
-
-	Bydetect->AcquisiteData();
-}
+//unsigned int __stdcall AcquisitionThread(PVOID pParam) {
+//	FatigueTest *Bydetect = (FatigueTest*)pParam;
+//	UINT oldTickCount, newTickCount;
+//	oldTickCount = GetTickCount();
+//	while (TRUE)
+//	{
+//		if (Bydetect->m_stop)
+//			break;
+//		//延时 BOYDET_TIME s
+//		while (TRUE)
+//		{
+//			newTickCount = GetTickCount();
+//			if (newTickCount - oldTickCount >= BOYDET_TIME * 1000)
+//			{
+//				oldTickCount = newTickCount;
+//				break;
+//			}
+//			else
+//			{
+//				SwitchToThread();
+//				::Sleep(5);
+//			}
+//		}
+//		if (Bydetect->m_stop)
+//			break;
+//	}
+//
+//	Bydetect->AcquisiteData();
+//	Bydetect->shoulder_moment = Bydetect->m_pDataAcquisition->torque_data[0];
+//	Bydetect->elbow_moment = Bydetect->m_pDataAcquisition->torque_data[1];
+//}
 
 void FatigueTest::Raw2Trans(double RAWData[6], double DistData[6]) {
 	//这一段就是为了把力从六维力传感器上传到手柄上，这里的A就是总的一个转换矩阵。
@@ -299,7 +301,7 @@ void FatigueTest::FiltedVolt2Vel(double FiltedData[6]) {
 	MatrixXd Pos(2, 1);
 	MatrixXd A(6, 6);
 	VectorXd Six_Sensor_Convert(6);
-	VectorXd moment(6);
+	VectorXd moment(5);
 	double angle[2];
 	m_pControlCard->GetEncoderData(angle);
 	Pos(0, 0) = angle[0];
@@ -315,7 +317,29 @@ void FatigueTest::FiltedVolt2Vel(double FiltedData[6]) {
 		Six_Sensor_Convert(i) = FiltedData[i];
 	}
 	damping_control(Six_Sensor_Convert, Pos, Vel, Force_Fc, Force_a, Force_b);
+
+	//计算tau值并输出
 	TauExport(Pos,Six_Sensor_Convert, moment);
+	shoulder_tau = moment(2);
+	elbow_tau = moment(3);
+
+	m_pDataAcquisition->AcquisiteTorqueData();
+	shoulder_moment=m_pDataAcquisition->torque_data[0];
+	elbow_moment = m_pDataAcquisition->torque_data[1];
+
+	shoulder_difference = shoulder_tau - shoulder_moment;
+	elbow_difference = elbow_tau - elbow_moment;
+
+	moments[0] = shoulder_moment;
+	moments[1] = elbow_moment;
+	moments[2] = shoulder_tau;
+	moments[3] = elbow_tau;
+	moments[4] = shoulder_difference;
+	moments[5] = elbow_difference;
+	
+	UpdataDataArray(moments);
+    PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
+
 	m_shoulder_vel = Vel(0, 0);
 	m_elbow_vel = Vel(1, 0);
 

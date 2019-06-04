@@ -12,13 +12,6 @@ public:
 	double torque_data[2] {0};
 	double pull_sensor_data[4] {0};
 
-public:
-	double shoulder_moment;
-	double elbow_moment;
-	double shoulder_tau;
-	double elbow_tau;
-	double shoulder_difference;
-	double elbow_difference;
 
 private:
 	const char *torque_channel = "dev3/ai4:5";

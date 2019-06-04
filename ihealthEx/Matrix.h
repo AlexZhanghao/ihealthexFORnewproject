@@ -253,20 +253,6 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 
 	jacobian = jacobian.transpose();
 
-
-
-	//因为MatrixBase<Derived>不接受左乘运算，这里将它转换下
-	//VectorXd six_sensor_data_change(5);
-	//double a_six_sensor_data_change[5] = { 0 };
-	//for (int i = 0; i < 5; ++i) {
-	//	a_six_sensor_data_change[i] = six_sensor_data[i];
-	//}
-	//six_sensor_data_change << a_six_sensor_data_change(0),
-	//	a_six_sensor_data_change(1),
-	//	a_six_sensor_data_change(2),
-	//	a_six_sensor_data_change(3),
-	//	a_six_sensor_data_change(4);
-
 	moment = jacobian * six_sensor_data;
 }
 

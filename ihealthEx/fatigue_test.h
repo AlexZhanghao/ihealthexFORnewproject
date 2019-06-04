@@ -36,6 +36,16 @@ public:
 
 	bool m_stop = true;
 
+public:
+	
+	double moments[6];
+	double shoulder_moment;
+	double elbow_moment;
+	double shoulder_tau;
+	double elbow_tau;
+	double shoulder_difference;
+	double elbow_difference;
+
 private:
 	void WriteDataToFile(int index);
 	void UpdataDataArray();
@@ -51,8 +61,8 @@ private:
 	bool is_initialed = false;
 	bool in_test_move = false;
 
-	ControlCard *m_pControlCard = nullptr;
 	DataAcquisition *m_pDataAcquisition = nullptr;
+	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
 	HANDLE test_thread = nullptr;
 	HANDLE acquisition_thread = nullptr;
