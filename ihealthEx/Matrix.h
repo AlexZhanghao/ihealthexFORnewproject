@@ -218,6 +218,16 @@ void damping_control(const MatrixBase<DerivedA>& Fh, MatrixBase<DerivedB>& U, Ma
 	Ub = con*(p_X*Co*Fh*Fc*0.1);
 }
 
+//ÇóÎ±Äæ
+template<typename _Matrix_Type_>
+_Matrix_Type_ pseudoInverse(const _Matrix_Type_ &a, double epsilon =
+	std::numeric_limits<double>::epsilon())
+{
+	Eigen::JacobiSVD< _Matrix_Type_ > svd(a, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	double tolerance = epsilon * std::max(a.cols(), a.rows()) *svd.singularValues().array().abs()(0);
+	return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
+}
+
 template<typename DerivedA, typename DerivedB, typename DerivedC>
 void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>& six_sensor_data,  MatrixBase<DerivedC>& moment) {
 	Matrix3d axisdirection_hat[4];
@@ -251,7 +261,7 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 		//	SO3[i] = so3[i].exp();
 		//}
 
-	jacobian = jacobian.transpose();
+	jacobian = pseudoInverse(jacobian);
 
 	moment = jacobian * six_sensor_data;
 }
