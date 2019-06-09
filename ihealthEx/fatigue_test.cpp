@@ -32,10 +32,38 @@ bool FatigueTest::IsInitialed() {
 }
 
 void FatigueTest::StartTest() {
+
+	//ATI六维力传感器使用
+	mFTWrapper.LoadCalFile();
+	mFTWrapper.BiasCurrentLoad(true);
+	mFTWrapper.setFUnit();
+	mFTWrapper.setTUnit();
+
 	//主动运动线程
 	test_thread = (HANDLE)_beginthreadex(NULL, 0, TestThread, this, 0, NULL);
 	////传感器开启线程
 	//acquisition_thread= (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
+}
+
+void FatigueTest::timerAcquisit() {
+	if (!IsInitialed()) {
+		return;
+	}
+
+	double readings[7] = { 0 };
+	double distData[6] = { 0 };
+	double filtedData[6] = { 0 };
+	mFTWrapper.GetForcesAndTorques(readings);
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//std::cout << "f0: " << readings[0] << " f1: " << readings[1] <<
+	//	" f2: " << readings[2] << " f3: " << readings[3] <<
+	//	" f4: " << readings[4] << " f5: " << readings[5] << std::endl;
+	Raw2Trans(readings, distData);
+	Trans2Filter(distData, filtedData);
+	FiltedVolt2Vel(filtedData);
+
+	Sleep(100);
 }
 
 void FatigueTest::StartMove() {
@@ -180,7 +208,11 @@ unsigned int __stdcall TestThread(PVOID pParam) {
 	if (!mTest->IsInitialed()) {
 		return 1;
 	}
-	mTest->StartMove();
+
+	//国产六维力
+	//mTest->StartMove();
+	//ATI六维力
+	mTest->timerAcquisit();
 }
 
 //unsigned int __stdcall AcquisitionThread(PVOID pParam) {

@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\include;D:\ihealthexFORnewproject\eigen\eigen3_3_4;D:\ihealthexFORnewproject\DuiLib;D:\ihealthexFORnewproject\APS\include;$(SolutionDir)DuiLib;$(IncludePath)</IncludePath>
+    <IncludePath>D:\ihealthexFORnewproject\ATI\ATIDAQ;D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\include;D:\ihealthexFORnewproject\eigen\eigen3_3_4;D:\ihealthexFORnewproject\DuiLib;D:\ihealthexFORnewproject\APS\include;$(SolutionDir)DuiLib;$(IncludePath)</IncludePath>
     <LibraryPath>D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\lib;D:\ihealthexFORnewproject\Lib;D:\ihealthexFORnewproject\APS\lib;$(SolutionDir)Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -157,6 +157,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ATI\ATIDAQ\DAQSys.cpp" />
+    <ClCompile Include="..\ATI\ATIDAQ\dom.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\events.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\expatls.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\ftconfig.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\ftrt.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\FTWrapper.cpp" />
+    <ClCompile Include="..\ATI\ATIDAQ\node.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\stack.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\xmlparse.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\xmlrole.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\xmltok.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\xmltok_impl.c" />
+    <ClCompile Include="..\ATI\ATIDAQ\xmltok_ns.c" />
     <ClCompile Include="control_card.cpp" />
     <ClCompile Include="data_acquisition.cpp" />
     <ClCompile Include="fatigue_test.cpp" />
@@ -166,6 +180,24 @@
     <ClCompile Include="passive_mode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ATI\ATIDAQ\ascii.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\asciitab.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\DAQSys.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\dom.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\ftconfig.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\ftrt.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\ftsharedrt.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\FTWrapper.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\iasciitab.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\latin1tab.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\nametab.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\stack.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\utf8tab.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\xmldef.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\xmlparse.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\xmlrole.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\xmltok.h" />
+    <ClInclude Include="..\ATI\ATIDAQ\xmltok_impl.h" />
     <ClInclude Include="control_card.h" />
     <ClInclude Include="data_acquisition.h" />
     <ClInclude Include="fatigue_test.h" />

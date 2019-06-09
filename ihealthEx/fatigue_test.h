@@ -2,6 +2,7 @@
 #include "control_card.h"
 #include "data_acquisition.h"
 #include "file_writer.h"
+#include "FTWrapper.h"
 
 #define CCHART_UPDATE (2050)
 
@@ -13,7 +14,10 @@ public:
 	bool IsInitialed();
 
 	void StartTest();
+	//¹ú²úÁùÎ¬Á¦
 	void StartMove();
+	//ATI
+	void timerAcquisit();
 	void PositionReset();
 	void StopMove();
 	void AbsoluteMove();
@@ -61,6 +65,7 @@ private:
 	bool is_initialed = false;
 	bool in_test_move = false;
 
+	FTWrapper mFTWrapper;
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
