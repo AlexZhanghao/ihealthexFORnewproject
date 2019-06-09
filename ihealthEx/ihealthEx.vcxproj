@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\DuiLib_Ultimate\DuiLib;D:\ihealth\ihealth\ihealth\NI\include;D:\ihealth\ihealth\ihealth\APS\include;D:\vsfile\ihealthex\Library;E:\eigen\eigen3_3_4;$(SolutionDir)DuiLib;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\DuiLib_Ultimate\Lib;D:\ihealth\ihealth\ihealth\NI\lib;D:\ihealth\ihealth\ihealth\APS\lib;D:\vsfile\ihealthex\Library;$(SolutionDir)Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\include;D:\ihealthexFORnewproject\eigen\eigen3_3_4;D:\ihealthexFORnewproject\DuiLib;D:\ihealthexFORnewproject\APS\include;$(SolutionDir)DuiLib;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\lib;D:\ihealthexFORnewproject\Lib;D:\ihealthexFORnewproject\APS\lib;$(SolutionDir)Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -99,7 +99,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>APS168.lib;NIDAQmx.lib;E:\DuiLib_Ultimate\Lib\DuiLib_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>APS168.lib;NIDAQmx.lib;DuiLib_d.lib;CChartu.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

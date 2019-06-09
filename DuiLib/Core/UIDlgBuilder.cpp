@@ -133,7 +133,7 @@ namespace DuiLib {
 					}
 					if( id >= 0 ) {
 						pManager->AddFont(id, pFontName, size, bold, underline, italic, shared);
-						if( defaultfont ) pManager->SetDefaultFont(pFontName, pManager->GetDPIObj()->Scale(size), bold, underline, italic, shared);
+						if( defaultfont ) pManager->SetDefaultFont(pFontName, size, bold, underline, italic, shared);
 					}
 				}
 				else if( _tcsicmp(pstrClass, _T("Default")) == 0 ) {
@@ -256,6 +256,13 @@ namespace DuiLib {
 						} 
 						else if( _tcscmp(pstrName, _T("layered")) == 0 || _tcscmp(pstrName, _T("bktrans")) == 0) {
 							pManager->SetLayered(_tcsicmp(pstrValue, _T("true")) == 0);
+						}
+						else if( _tcscmp(pstrName, _T("layeredimage")) == 0 ) {
+							pManager->SetLayered(true);
+							pManager->SetLayeredImage(pstrValue);
+						} 
+						else if( _tcscmp(pstrName, _T("noactivate")) == 0 ) {
+							pManager->SetNoActivate(_tcsicmp(pstrValue, _T("true")) == 0);
 						}
 						else if( _tcsicmp(pstrName, _T("disabledfontcolor")) == 0 ) {
 							if( *pstrValue == _T('#')) pstrValue = ::CharNext(pstrValue);

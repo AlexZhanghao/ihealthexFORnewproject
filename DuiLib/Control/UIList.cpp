@@ -126,8 +126,9 @@ namespace DuiLib {
 		if( pListItem != NULL ) {
 			pListItem->SetOwner(this);
 			pListItem->SetIndex(GetCount());
+			return m_pList->Add(pControl);
 		}
-		return m_pList->Add(pControl);
+		return CVerticalLayoutUI::Add(pControl);
 	}
 
 	bool CListUI::AddAt(CControlUI* pControl, int iIndex)
@@ -220,6 +221,7 @@ namespace DuiLib {
 	{
 		m_iCurSel = -1;
 		m_iExpandedItem = -1;
+		m_aSelItems.Empty();
 		m_pList->RemoveAll();
 	}
 
@@ -1430,6 +1432,7 @@ namespace DuiLib {
 			cXY.cx +=  static_cast<CControlUI*>(m_items[it])->EstimateSize(szAvailable).cx;
 		}
 
+		if (cXY.cx < szAvailable.cx) cXY.cx = szAvailable.cx;
 		return cXY;
 	}
 
@@ -1858,7 +1861,7 @@ namespace DuiLib {
 		if( event.Type == UIEVENT_SETCURSOR )
 		{
 			RECT rcSeparator = GetThumbRect();
-			if (m_iSepWidth>=0)//111024 by cddjr, 增加分隔符区域，方便用户拖动
+			if (m_iSepWidth>=0)
 				rcSeparator.left-=4;
 			else
 				rcSeparator.right+=4;
@@ -1949,7 +1952,7 @@ namespace DuiLib {
 		int nLinks = 0;
 		if( m_bShowHtml )
 			CRenderEngine::DrawHtmlText(hDC, m_pManager, rcText, sText, m_dwTextColor, \
-			NULL, NULL, nLinks, m_uTextStyle);
+			NULL, NULL, nLinks, m_iFont, m_uTextStyle);
 		else
 			CRenderEngine::DrawText(hDC, m_pManager, rcText, sText, m_dwTextColor, \
 			m_iFont, m_uTextStyle);
@@ -2156,13 +2159,13 @@ namespace DuiLib {
 		TListInfoUI* pInfo = m_pOwner->GetListInfo();
 		DWORD iBackColor = 0;
 		if( !pInfo->bAlternateBk || m_iIndex % 2 == 0 ) iBackColor = pInfo->dwBkColor;
-		if( (m_uButtonState & UISTATE_HOT) != 0 ) {
+		if( (m_uButtonState & UISTATE_HOT) != 0 && pInfo->dwHotBkColor > 0) {
 			iBackColor = pInfo->dwHotBkColor;
 		}
-		if( IsSelected() ) {
+		if( IsSelected() && pInfo->dwSelectedBkColor > 0) {
 			iBackColor = pInfo->dwSelectedBkColor;
 		}
-		if( !IsEnabled() ) {
+		if( !IsEnabled() && pInfo->dwDisabledBkColor > 0) {
 			iBackColor = pInfo->dwDisabledBkColor;
 		}
 
@@ -2316,25 +2319,26 @@ namespace DuiLib {
 		}
 
 		if( cXY.cx == 0 && m_pManager != NULL ) {
-			RECT rcText = { 0, 0, 9999, cXY.cy };
-			if( pInfo->bShowHtml ) {
-				int nLinks = 0;
-				CRenderEngine::DrawHtmlText(m_pManager->GetPaintDC(), m_pManager, rcText, sText, 0, NULL, NULL, nLinks, DT_SINGLELINE | DT_CALCRECT | pInfo->uTextStyle & ~DT_RIGHT & ~DT_CENTER);
-			}
-			else {
-				CRenderEngine::DrawText(m_pManager->GetPaintDC(), m_pManager, rcText, sText, 0, pInfo->nFont, DT_SINGLELINE | DT_CALCRECT | pInfo->uTextStyle & ~DT_RIGHT & ~DT_CENTER);
-			}
-			cXY.cx = rcText.right - rcText.left + pInfo->rcTextPadding.left + pInfo->rcTextPadding.right;        
+			//RECT rcText = { 0, 0, 9999, cXY.cy };
+			//if( pInfo->bShowHtml ) {
+			//	int nLinks = 0;
+			//	CRenderEngine::DrawHtmlText(m_pManager->GetPaintDC(), m_pManager, rcText, sText, 0, NULL, NULL, nLinks, pInfo->nFont, DT_SINGLELINE | DT_CALCRECT | pInfo->uTextStyle & ~DT_RIGHT & ~DT_CENTER);
+			//}
+			//else {
+			//	CRenderEngine::DrawText(m_pManager->GetPaintDC(), m_pManager, rcText, sText, 0, pInfo->nFont, DT_SINGLELINE | DT_CALCRECT | pInfo->uTextStyle & ~DT_RIGHT & ~DT_CENTER);
+			//}
+			//cXY.cx = rcText.right - rcText.left + pInfo->rcTextPadding.left + pInfo->rcTextPadding.right;        
+			cXY.cx = szAvailable.cx;
 		}
 
 		return cXY;
 	}
 
-	void CListLabelElementUI::DoPaint(HDC hDC, const RECT& rcPaint)
+	bool CListLabelElementUI::DoPaint(HDC hDC, const RECT& rcPaint, CControlUI* pStopControl)
 	{
-		if( !::IntersectRect(&m_rcPaint, &rcPaint, &m_rcItem) ) return;
 		DrawItemBk(hDC, m_rcItem);
 		DrawItemText(hDC, m_rcItem);
+		return true;
 	}
 
 	void CListLabelElementUI::DrawItemText(HDC hDC, const RECT& rcItem)
@@ -2363,7 +2367,7 @@ namespace DuiLib {
 
 		if( pInfo->bShowHtml )
 			CRenderEngine::DrawHtmlText(hDC, m_pManager, rcText, sText, iTextColor, \
-			NULL, NULL, nLinks, pInfo->uTextStyle);
+			NULL, NULL, nLinks, pInfo->nFont, pInfo->uTextStyle);
 		else
 			CRenderEngine::DrawText(hDC, m_pManager, rcText, sText, iTextColor, \
 			pInfo->nFont, pInfo->uTextStyle);
@@ -2541,7 +2545,7 @@ namespace DuiLib {
 
 			if( pInfo->bShowHtml )
 				CRenderEngine::DrawHtmlText(hDC, m_pManager, rcItem, strText.GetData(), iTextColor, \
-				&m_rcLinks[m_nLinks], &m_sLinks[m_nLinks], nLinks, pInfo->uTextStyle);
+				&m_rcLinks[m_nLinks], &m_sLinks[m_nLinks], nLinks, pInfo->nFont, pInfo->uTextStyle);
 			else
 				CRenderEngine::DrawText(hDC, m_pManager, rcItem, strText.GetData(), iTextColor, \
 				pInfo->nFont, pInfo->uTextStyle);
@@ -2814,74 +2818,14 @@ namespace DuiLib {
 	void CListContainerElementUI::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
 	{
 		if( _tcsicmp(pstrName, _T("selected")) == 0 ) Select();
+		//else if( _tcscmp(pstrName, _T("expandable")) == 0 ) SetExpandable(_tcscmp(pstrValue, _T("true")) == 0);
 		else CContainerUI::SetAttribute(pstrName, pstrValue);
 	}
 
-	void CListContainerElementUI::DoPaint(HDC hDC, const RECT& rcPaint)
+	bool CListContainerElementUI::DoPaint(HDC hDC, const RECT& rcPaint, CControlUI* pStopControl)
 	{
-		if( !::IntersectRect(&m_rcPaint, &rcPaint, &m_rcItem) ) return;
-
-		RECT rcTemp = { 0 };
-		if( !::IntersectRect(&rcTemp, &rcPaint, &m_rcItem) ) return;
-
-		CRenderClip clip;
-		CRenderClip::GenerateClip(hDC, rcTemp, clip);
-		CControlUI::DoPaint(hDC, rcPaint);
-
 		DrawItemBk(hDC, m_rcItem);
-
-		if( m_items.GetSize() > 0 ) {
-			RECT rc = m_rcItem;
-			rc.left += m_rcInset.left;
-			rc.top += m_rcInset.top;
-			rc.right -= m_rcInset.right;
-			rc.bottom -= m_rcInset.bottom;
-			if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsVisible() ) rc.right -= m_pVerticalScrollBar->GetFixedWidth();
-			if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsVisible() ) rc.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
-
-			if( !::IntersectRect(&rcTemp, &rcPaint, &rc) ) {
-				for( int it = 0; it < m_items.GetSize(); it++ ) {
-					CControlUI* pControl = static_cast<CControlUI*>(m_items[it]);
-					if( !pControl->IsVisible() ) continue;
-					if( !::IntersectRect(&rcTemp, &rcPaint, &pControl->GetPos()) ) continue;
-					if( pControl ->IsFloat() ) {
-						if( !::IntersectRect(&rcTemp, &m_rcItem, &pControl->GetPos()) ) continue;
-						pControl->DoPaint(hDC, rcPaint);
-					}
-				}
-			}
-			else {
-				CRenderClip childClip;
-				CRenderClip::GenerateClip(hDC, rcTemp, childClip);
-				for( int it = 0; it < m_items.GetSize(); it++ ) {
-					CControlUI* pControl = static_cast<CControlUI*>(m_items[it]);
-					if( !pControl->IsVisible() ) continue;
-					if( !::IntersectRect(&rcTemp, &rcPaint, &pControl->GetPos()) ) continue;
-					if( pControl ->IsFloat() ) {
-						if( !::IntersectRect(&rcTemp, &m_rcItem, &pControl->GetPos()) ) continue;
-						CRenderClip::UseOldClipBegin(hDC, childClip);
-						pControl->DoPaint(hDC, rcPaint);
-						CRenderClip::UseOldClipEnd(hDC, childClip);
-					}
-					else {
-						if( !::IntersectRect(&rcTemp, &rc, &pControl->GetPos()) ) continue;
-						pControl->DoPaint(hDC, rcPaint);
-					}
-				}
-			}
-		}
-
-		if( m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsVisible() ) {
-			if( ::IntersectRect(&rcTemp, &rcPaint, &m_pVerticalScrollBar->GetPos()) ) {
-				m_pVerticalScrollBar->DoPaint(hDC, rcPaint);
-			}
-		}
-
-		if( m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsVisible() ) {
-			if( ::IntersectRect(&rcTemp, &rcPaint, &m_pHorizontalScrollBar->GetPos()) ) {
-				m_pHorizontalScrollBar->DoPaint(hDC, rcPaint);
-			}
-		}
+		return CContainerUI::DoPaint(hDC, rcPaint, pStopControl);
 	}
 
 	void CListContainerElementUI::DrawItemText(HDC hDC, const RECT& rcItem)
@@ -2897,13 +2841,13 @@ namespace DuiLib {
 		DWORD iBackColor = 0;
 		if( !pInfo->bAlternateBk || m_iIndex % 2 == 0 ) iBackColor = pInfo->dwBkColor;
 
-		if( (m_uButtonState & UISTATE_HOT) != 0 ) {
+		if( (m_uButtonState & UISTATE_HOT) != 0 && pInfo->dwHotBkColor > 0) {
 			iBackColor = pInfo->dwHotBkColor;
 		}
-		if( IsSelected() ) {
+		if( IsSelected() && pInfo->dwSelectedBkColor > 0) {
 			iBackColor = pInfo->dwSelectedBkColor;
 		}
-		if( !IsEnabled() ) {
+		if( !IsEnabled() && pInfo->dwDisabledBkColor > 0) {
 			iBackColor = pInfo->dwDisabledBkColor;
 		}
 		if ( iBackColor != 0 ) {
@@ -2957,7 +2901,6 @@ namespace DuiLib {
 
 	void CListContainerElementUI::SetPos(RECT rc, bool bNeedInvalidate)
 	{
-		CHorizontalLayoutUI::SetPos(rc, bNeedInvalidate);
 		if( m_pOwner == NULL ) return;
 
 		UINT uListType = m_pOwner->GetListType();
@@ -2979,11 +2922,10 @@ namespace DuiLib {
 				}
 			}
 		}
+		CHorizontalLayoutUI::SetPos(rc, bNeedInvalidate);
 
 		if(uListType != LT_LIST && uListType != LT_TREE) return;
-
 		CListUI* pList = static_cast<CListUI*>(m_pOwner);
-
  		if (uListType == LT_TREE)
  		{
  			pList = (CListUI*)pList->CControlUI::GetInterface(_T("List"));
