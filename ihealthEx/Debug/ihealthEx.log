@@ -1,0 +1,42 @@
+﻿  DAQSys.cpp
+  FTWrapper.cpp
+d:\ihealthexfornewproject\ati\atidaq\ftsharedrt.h(41): warning C4005: “TRUE”: 宏重定义
+  d:\ihealthexfornewproject\ni\include\nidaqmx.h(95): note: 参见“TRUE”的前一个定义
+d:\ihealthexfornewproject\ati\atidaq\ftsharedrt.h(42): warning C4005: “FALSE”: 宏重定义
+  d:\ihealthexfornewproject\ni\include\nidaqmx.h(98): note: 参见“FALSE”的前一个定义
+d:\ihealthexfornewproject\ati\atidaq\ftwrapper.cpp(57): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+d:\ihealthexfornewproject\ati\atidaq\ftwrapper.cpp(99): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+  control_card.cpp
+d:\ihealthexfornewproject\ihealthex\control_card.cpp(202): warning C4244: “参数”: 从“double”转换到“I32”，可能丢失数据
+  data_acquisition.cpp
+  fatigue_test.cpp
+d:\ihealthexfornewproject\ihealthex\fatigue_test.cpp(392): warning C4101: “message_tracing”: 未引用的局部变量
+  file_writer.cpp
+  main_wnd.cpp
+d:\ihealthexfornewproject\duilib\core\uimanager.h(55): warning C4091: “typedef ”: 没有声明变量时忽略“DuiLib::EVENTTYPE_UI”的左侧
+d:\ihealthexfornewproject\duilib\core\uimanager.h(67): warning C4091: “typedef ”: 没有声明变量时忽略“DuiLib::MSGTYPE_UI”的左侧
+  ihealthEx.cpp
+d:\ihealthexfornewproject\duilib\core\uimanager.h(55): warning C4091: “typedef ”: 没有声明变量时忽略“DuiLib::EVENTTYPE_UI”的左侧
+d:\ihealthexfornewproject\duilib\core\uimanager.h(67): warning C4091: “typedef ”: 没有声明变量时忽略“DuiLib::MSGTYPE_UI”的左侧
+  passive_mode.cpp
+  正在生成代码...
+d:\ihealthexfornewproject\ihealthex\fatigue_test.cpp(227): warning C4715: “TestThread”: 不是所有的控件路径都返回值
+  dom.c
+d:\ihealthexfornewproject\ati\atidaq\dom.c(616): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\string.h(90): note: 参见“strcat”的声明
+  expatls.c
+d:\ihealthexfornewproject\ati\atidaq\expatls.c(167): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
+d:\ihealthexfornewproject\ati\atidaq\expatls.c(290): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
+  ftconfig.c
+d:\ihealthexfornewproject\ati\atidaq\ftconfig.c(85): warning C4090: “函数”: 不同的“const”限定符
+d:\ihealthexfornewproject\ati\atidaq\ftconfig.c(93): warning C4090: “函数”: 不同的“const”限定符
+  ftrt.c
+  node.c
+  stack.c
+  xmlparse.c
+  xmlrole.c
+  xmltok.c
+  正在生成代码...
+  ihealthEx.vcxproj -> D:\ihealthexFORnewproject\Debug\ihealthEx.exe

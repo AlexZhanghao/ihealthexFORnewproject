@@ -9,6 +9,8 @@
 
 
 using namespace Eigen;
+using namespace std;
+
 const double ShoulderWidth = 0.297;
 const double ShoulderLength = 0.435;
 const double UpperArmLength = 0.296;
@@ -193,6 +195,10 @@ void damping_control(const MatrixBase<DerivedA>& Fh, MatrixBase<DerivedB>& U, Ma
 	CalculateAdjointMatrix(exp_m[2], A[2]);
 	CalculateAdjointMatrix(exp_m[3], A[3]);
 
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//std::cout << "spinor0: " << spinor[0] << "\n"<<" A0: " << A[0] << std::endl;
+
 	jacobian.block(0, 0, 6, 1) = A[0] * spinor[0];
 	jacobian.block(0, 1, 6, 1) = A[1] * spinor[1];
 	jacobian.block(0, 2, 6, 1) = A[2] * spinor[2];
@@ -224,7 +230,7 @@ _Matrix_Type_ pseudoInverse(const _Matrix_Type_ &a, double epsilon =
 	std::numeric_limits<double>::epsilon())
 {
 	Eigen::JacobiSVD< _Matrix_Type_ > svd(a, Eigen::ComputeThinU | Eigen::ComputeThinV);
-	double tolerance = epsilon * std::max(a.cols(), a.rows()) *svd.singularValues().array().abs()(0);
+	double tolerance = epsilon * max(a.cols(), a.rows()) *svd.singularValues().array().abs()(0);
 	return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
 
@@ -261,9 +267,12 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 		//	SO3[i] = so3[i].exp();
 		//}
 
-	jacobian = pseudoInverse(jacobian);
+	MatrixXd jacobian1(6, 5);
+	jacobian1 = jacobian;
 
-	moment = jacobian * six_sensor_data;
+	jacobian1 = jacobian.transpose();
+
+	moment = jacobian1 * six_sensor_data;
 }
 
 //用来将叉乘转成点乘

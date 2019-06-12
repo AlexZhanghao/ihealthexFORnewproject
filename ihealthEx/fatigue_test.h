@@ -50,6 +50,7 @@ public:
 	double shoulder_difference;
 	double elbow_difference;
 
+
 private:
 	void WriteDataToFile(int index);
 	void UpdataDataArray();
@@ -74,4 +75,6 @@ private:
 
 	double m_shoulder_vel;
 	double m_elbow_vel;
+
+
 };

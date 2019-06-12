@@ -63,9 +63,6 @@
     <ClCompile Include="..\ATI\ATIDAQ\dom.c">
       <Filter>源文件\ATI</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATI\ATIDAQ\events.c">
-      <Filter>源文件\ATI</Filter>
-    </ClCompile>
     <ClCompile Include="..\ATI\ATIDAQ\expatls.c">
       <Filter>源文件\ATI</Filter>
     </ClCompile>
@@ -93,12 +90,6 @@
     <ClCompile Include="..\ATI\ATIDAQ\xmltok.c">
       <Filter>源文件\ATI</Filter>
     </ClCompile>
-    <ClCompile Include="..\ATI\ATIDAQ\xmltok_impl.c">
-      <Filter>源文件\ATI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ATI\ATIDAQ\xmltok_ns.c">
-      <Filter>源文件\ATI</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control_card.h">
@@ -122,12 +113,6 @@
     <ClInclude Include="Matrix.h">
       <Filter>头文件\Robot</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\ascii.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\asciitab.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\DAQSys.h">
       <Filter>源文件\ATI</Filter>
     </ClInclude>
@@ -140,28 +125,10 @@
     <ClInclude Include="..\ATI\ATIDAQ\ftrt.h">
       <Filter>源文件\ATI</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\ftsharedrt.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\FTWrapper.h">
       <Filter>源文件\ATI</Filter>
     </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\iasciitab.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\latin1tab.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\nametab.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\stack.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\utf8tab.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\xmldef.h">
       <Filter>源文件\ATI</Filter>
     </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\xmlparse.h">
@@ -171,9 +138,6 @@
       <Filter>源文件\ATI</Filter>
     </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\xmltok.h">
-      <Filter>源文件\ATI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ATI\ATIDAQ\xmltok_impl.h">
       <Filter>源文件\ATI</Filter>
     </ClInclude>
   </ItemGroup>

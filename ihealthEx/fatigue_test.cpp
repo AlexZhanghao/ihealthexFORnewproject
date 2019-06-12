@@ -11,6 +11,8 @@
 double Force_Fc = 0.3;
 double Force_a = 0.3;
 double Force_b = 1;
+double shoulder_offset ;
+double elbow_offset ;
 	
 unsigned int __stdcall TestThread(PVOID pParam);
 //unsigned int __stdcall AcquisitionThread(PVOID pParam);
@@ -53,17 +55,26 @@ void FatigueTest::timerAcquisit() {
 	double readings[7] = { 0 };
 	double distData[6] = { 0 };
 	double filtedData[6] = { 0 };
-	mFTWrapper.GetForcesAndTorques(readings);
-	//AllocConsole();
-	//freopen("CONOUT$", "w", stdout);
-	//std::cout << "f0: " << readings[0] << " f1: " << readings[1] <<
-	//	" f2: " << readings[2] << " f3: " << readings[3] <<
-	//	" f4: " << readings[4] << " f5: " << readings[5] << std::endl;
-	Raw2Trans(readings, distData);
-	Trans2Filter(distData, filtedData);
-	FiltedVolt2Vel(filtedData);
 
-	Sleep(100);
+	m_pDataAcquisition->AcquisiteTorqueData();
+	elbow_offset = 2*m_pDataAcquisition->torque_data[0];
+	shoulder_offset = 2*m_pDataAcquisition->torque_data[1];
+
+	while (true) {
+		mFTWrapper.GetForcesAndTorques(readings);
+
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+		//std::cout << "f0: " << readings[0] << " f1: " << readings[1] <<
+		//	" f2: " << readings[2] << " f3: " << readings[3] <<
+		//	" f4: " << readings[4] << " f5: " << readings[5] << std::endl;
+
+		Raw2Trans(readings, distData);
+		Trans2Filter(distData, filtedData);
+		FiltedVolt2Vel(filtedData);
+
+		Sleep(100);
+	}
 }
 
 void FatigueTest::StartMove() {
@@ -273,7 +284,7 @@ void FatigueTest::Raw2Trans(double RAWData[6], double DistData[6]) {
 		ForcePosition[2], 0, -ForcePosition[0],
 		-ForcePosition[1], ForcePosition[0], 0;
 	A.block(0, 0, 3, 3) = rotate_matrix;
-	A.block(0, 3, 3, 1) = ForcePositionHat * rotate_matrix;
+	A.block(0, 3, 3, 3) = ForcePositionHat * rotate_matrix;
 	A.block(3, 3, 3, 3) = rotate_matrix;
 
 
@@ -351,13 +362,13 @@ void FatigueTest::FiltedVolt2Vel(double FiltedData[6]) {
 	damping_control(Six_Sensor_Convert, Pos, Vel, Force_Fc, Force_a, Force_b);
 
 	//计算tau值并输出
-	TauExport(Pos,Six_Sensor_Convert, moment);
-	shoulder_tau = moment(2);
-	elbow_tau = moment(3);
+	TauExport(Pos, Six_Sensor_Convert, moment);
+	shoulder_tau = moment(0);
+	elbow_tau = moment(2);
 
 	m_pDataAcquisition->AcquisiteTorqueData();
-	shoulder_moment=m_pDataAcquisition->torque_data[0];
-	elbow_moment = m_pDataAcquisition->torque_data[1];
+	shoulder_moment = 2 * m_pDataAcquisition->torque_data[1] - shoulder_offset;
+	elbow_moment = -(2 * m_pDataAcquisition->torque_data[0] - elbow_offset);
 
 	shoulder_difference = shoulder_tau - shoulder_moment;
 	elbow_difference = elbow_tau - elbow_moment;
