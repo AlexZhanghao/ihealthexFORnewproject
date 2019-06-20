@@ -484,20 +484,24 @@ void FatigueTest::PressureSensorAcquisit() {
 		}
 
 		//将传感器获取的数据滤波
-		Trans2Filter2(shoulder_suboffset, shoulder_smooth);
-		Trans2Filter2(elbow_suboffset, elbow_smooth);
+		//Trans2Filter2(shoulder_suboffset, shoulder_smooth);
+		//Trans2Filter2(elbow_suboffset, elbow_smooth);
 
 		//将传感器数据转成力矢量
-		SensorDataToForceVector(shoulder_smooth, elbow_smooth, force_vector);
+		SensorDataToForceVector(shoulder_suboffset, elbow_suboffset, force_vector);
 
 		FiltedVolt2Vel2(force_vector);
+
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+		//cout <<"m_shoulder_moment:\n"<< m_shoulder_moment << "\n" << "m_elbow_moment:\n"<< m_elbow_moment << endl;
 
 		m_pDataAcquisition->AcquisiteTorqueData();
 		shoulder_moment = 2 * m_pDataAcquisition->torque_data[1] - shoulder_offset;
 		elbow_moment = -(2 * m_pDataAcquisition->torque_data[0] - elbow_offset);
 
-		shoulder_difference = shoulder_tau - shoulder_moment;
-		elbow_difference = elbow_tau - elbow_moment;
+		shoulder_difference = m_shoulder_moment - shoulder_moment;
+		elbow_difference = m_elbow_moment - elbow_moment;
 
 		output_moment[0] = m_shoulder_moment;
 		output_moment[1] = m_elbow_moment;
@@ -507,7 +511,7 @@ void FatigueTest::PressureSensorAcquisit() {
 		output_moment[5] = elbow_difference;
 
 
-		UpdataDataArray2(pressure_data);
+		UpdataDataArray2(output_moment);
 		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
 
 		Sleep(100);
@@ -536,6 +540,10 @@ void FatigueTest::SensorDataToForceVector(double shouldersensordata[4], double e
 
 	shoulderforce = shoulderrotationmatrix * shoulderforce;
 	elbowforce = elbowrotationmatrix * elbowforce;
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//cout <<"shoulderforce:\n"<< shoulderforce << "\n" << "elbowforce:\n"<<elbowforce << endl;
 
 	ForceVector[0] = shoulderforce(0);
 	ForceVector[1] = shoulderforce(1);
@@ -610,4 +618,8 @@ void FatigueTest::FiltedVolt2Vel2(double ForceVector[4]) {
 
 	m_shoulder_moment = moment[0];
 	m_elbow_moment = moment[2];
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//cout << "m_shoulder_moment:\n" << m_shoulder_moment << "\n" << "m_elbow_moment:\n" << m_elbow_moment << endl;
 }

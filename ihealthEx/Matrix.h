@@ -93,7 +93,7 @@ void pinv(const MatrixBase<DerivedA>& A, const MatrixBase<DerivedB>&G, MatrixBas
 }
 
 template<typename DerivedA, typename DerivedB>
-void V2h(const MatrixBase<DerivedA>& X, MatrixBase<DerivedB>& Y) {
+void Vector3ToMatrix3X3(const MatrixBase<DerivedA>& X, MatrixBase<DerivedB>& Y) {
 	MatrixXd y(3, 3);
 	y.setZero();
 	y(1, 2) = -X(0);
@@ -111,7 +111,7 @@ void CalculateAdjointMatrix(const MatrixBase<DerivedA>& X, MatrixBase<DerivedB>&
 	A.block(0, 0, 3, 3) = X.block(0, 0, 3, 3);
 	A.block(3, 3, 3, 3) = X.block(0, 0, 3, 3);
 	h = X.block(0, 3, 3, 1);
-	V2h(h, Y);
+	Vector3ToMatrix3X3(h, Y);
 	A.block(3, 0, 3, 3) = Y*X.block(0, 0, 3, 3);
 }
 template<typename DerivedA, typename DerivedB>
@@ -293,6 +293,9 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	Vector3d p3_2 = Vector3d(0, dy_2, dz_2);
 	Vector3d p2_1 = Vector3d(0, -d1, -d2);
 
+	//由于最后得出的力和力矩都太小，这里把力放大看看
+	f1_3 = shoulderforcevector * 20;
+	f2_5 = elbowforcevector * 20;
 
 	VectorXd Co_tem(6);
 	VectorXd joint_angle(5);
@@ -325,7 +328,7 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	Vector3d n1_1;
 
 	//力矩平衡公式
-	f5_5 = elbowforcevector;
+	f5_5 = f2_5;
 	n5_5 = pa2_5.cross(f5_5);
 	f4_4 = SO3[3] * f5_5;
 	n4_4 = SO3[3] * n5_5 + p5_4.cross(f4_4);
@@ -336,11 +339,19 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	f1_1 = SO3[0] * f2_2;
 	n1_1 = SO3[0] * n2_2 + p2_1.cross(f1_1);
 
-	moment[0] = n1_1(3);
-	moment[1] = n2_2(3);
-	moment[2] = n3_3(3);
-	moment[3] = n4_4(3);
-	moment[4] = n5_5(3);
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//cout << "f5_5:\n" << f5_5 << "\n" << "n5_5:\n" << n5_5 << endl;
+	//cout << "f4_4:\n" << f4_4 << "\n" << "n4_4:\n" << n4_4 << endl;
+	//cout << "f3_3:\n" << f3_3 << "\n" << "n3_3:\n" << n3_3 << endl;
+	//cout << "f2_2:\n" << f2_2 << "\n" << "n2_2:\n" << n2_2 << endl;
+	//cout << "f1_1:\n" << f1_1 << "\n" << "n1_1:\n" << n1_1 << endl;
+
+	moment[0] = n1_1(2);
+	moment[1] = n2_2(2);
+	moment[2] = n3_3(2);
+	moment[3] = n4_4(2);
+	moment[4] = n5_5(2);
 }
 
 //用来将叉乘转成点乘
@@ -412,8 +423,8 @@ void Cal_phg(const MatrixBase<DerivedA>& R0h, MatrixBase<DerivedB>& t, MatrixBas
 	Co_tem << 1, 1, 1;
 	phs << -0.0447, -0.1055, 0;
 	Rhs = Co_tem.asDiagonal();
-	V2h(-R0h.transpose()*m*g, A);
-	V2h(phs, N);
+	Vector3ToMatrix3X3(-R0h.transpose()*m*g, A);
+	Vector3ToMatrix3X3(phs, N);
 	b = Rhs*t + N*Rhs*f;
 	/*A_temp = A.transpose()*A;
 	A_tem = A_temp.inverse();
@@ -430,7 +441,7 @@ void Cal_CoAdFg(const MatrixBase<DerivedA>& phg, MatrixBase<DerivedB>& R0h, Matr
 	MatrixXd v2(3, 3);
 	g << 9.8, 0, 0;
 	CoAdFg << 0, 0, 0, 0, 0, 0;
-	V2h(phg, v2);
+	Vector3ToMatrix3X3(phg, v2);
 	h = v2*R0h.transpose()*m*g;
 	n = R0h.transpose()*m*g;
 	CoAdFg.head(3) = h;
