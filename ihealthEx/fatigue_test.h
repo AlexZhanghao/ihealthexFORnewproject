@@ -26,6 +26,9 @@ public:
 	bool IsErrorHappened();
 	void AcquisiteData();
 
+	//将传感器的数据处理成两个二维矢量，由于矢量只在两个方向上有作用，故需输出4个数据。这里要先知道传感器的安装位置
+	void SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]);
+
 public:
 	HWND m_hWnd;
 	double elbow_angle_error[500] { 0 };
@@ -65,7 +68,10 @@ private:
 	void Raw2Trans(double RAWData[6], double DistData[6]);
 	//将转换后的值进行滤波-二阶巴特沃斯低通滤波器
 	void Trans2Filter(double TransData[6], double FiltedData[6]);
+	//用来对压力传感器数据进行滤波
+	void Trans2Filter2(double TransData[4], double FiltedData[4]);
 	void FiltedVolt2Vel(double FiltedData[6]);
+	void FiltedVolt2Vel2(double ForceVector[4]);
 
 private:
 	bool is_initialed = false;
@@ -81,5 +87,6 @@ private:
 	double m_shoulder_vel;
 	double m_elbow_vel;
 
-
+	double m_shoulder_moment;
+	double m_elbow_moment;
 };

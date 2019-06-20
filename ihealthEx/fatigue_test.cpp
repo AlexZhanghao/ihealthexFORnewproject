@@ -434,10 +434,21 @@ void FatigueTest::PressureSensorAcquisit() {
 	double pull_data[4] { 0 };
 	double distData[8] = { 0 };
 	double filtedData[8] = { 0 };
+	double shoulder_suboffset[4] = { 0 };
+	double elbow_suboffset[4] = { 0 };
+	double shoulder_smooth[4] = { 0 };
+	double elbow_smooth[4] = { 0 };
+	double force_vector[4] = { 0 };
 	
 	//将肩肘部合在一起
 	double two_arm_sum[8] { 0.0 };
 	double two_arm_buf[8] { 0.0 };
+	double two_arm_suboffset[8]{ 0.0 };
+
+	//换成出的和传感器测得的力矩,这里只有6个数据，但是测压力传感器数据时有八个数据，
+	//所以这里多加两个和那个匹配，只是最后两个是恒为0的
+	double output_moment[8]{ 0.0 };
+
 	for (int i = 0; i < 10; ++i) {
 		m_pDataAcquisition->AcquisiteTensionData(two_arm_buf);
 		for (int j = 0; j < 8; ++j) {
@@ -449,19 +460,154 @@ void FatigueTest::PressureSensorAcquisit() {
 		two_arm_offset[i] = two_arm_sum[i] / 10;
 	}
 
+	m_pDataAcquisition->AcquisiteTorqueData();
+	elbow_offset = 2 * m_pDataAcquisition->torque_data[0];
+	shoulder_offset = 2 * m_pDataAcquisition->torque_data[1];
+
 	m_pDataAcquisition->StopTask();
 	m_pDataAcquisition->StartTask();
 
 
-	while (true) {
+	while (true){
 		m_pDataAcquisition->AcquisiteTensionData(pressure_data);
+
+		for (int i = 0; i < 8; ++i) {
+			two_arm_suboffset[i] = pressure_data[i] - two_arm_offset[i];
+		}
+
+		//因为滤波会用到之前的数据，所以在这里还是得把数据分开
+		for (int i = 0; i < 4; ++i) {
+			shoulder_suboffset[i] = two_arm_suboffset[i];
+		}
+		for (int j = 0; j < 4; ++j) {
+			elbow_suboffset[j] = two_arm_suboffset[j + 4];
+		}
+
+		//将传感器获取的数据滤波
+		Trans2Filter2(shoulder_suboffset, shoulder_smooth);
+		Trans2Filter2(elbow_suboffset, elbow_smooth);
+
+		//将传感器数据转成力矢量
+		SensorDataToForceVector(shoulder_smooth, elbow_smooth, force_vector);
+
+		FiltedVolt2Vel2(force_vector);
+
+		m_pDataAcquisition->AcquisiteTorqueData();
+		shoulder_moment = 2 * m_pDataAcquisition->torque_data[1] - shoulder_offset;
+		elbow_moment = -(2 * m_pDataAcquisition->torque_data[0] - elbow_offset);
+
+		shoulder_difference = shoulder_tau - shoulder_moment;
+		elbow_difference = elbow_tau - elbow_moment;
+
+		output_moment[0] = m_shoulder_moment;
+		output_moment[1] = m_elbow_moment;
+		output_moment[2] = shoulder_moment;
+		output_moment[3] = elbow_moment;
+		output_moment[4] = shoulder_difference;
+		output_moment[5] = elbow_difference;
+
+
 		UpdataDataArray2(pressure_data);
 		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
 
-		//Raw2Trans(readings, distData);
-		//Trans2Filter(distData, filtedData);
-		//FiltedVolt2Vel(filtedData);
-
 		Sleep(100);
 	}
+}
+
+void FatigueTest::SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]) {
+	double shoulderdataX = shouldersensordata[0] - shouldersensordata[1];
+	double shoulderdataY = shouldersensordata[2] - shouldersensordata[3];
+	double elbowdataX = elbowsensordata[0] - elbowsensordata[1];
+	double elbowdataY = elbowsensordata[2] - elbowsensordata[3];
+
+	//合成的力矢量
+	Vector2d shoulderforce;
+	Vector2d elbowforce;
+	shoulderforce << shoulderdataX, shoulderdataY;
+	elbowforce << elbowdataX, elbowdataY;
+
+	//将力分别旋转到坐标系3、5上面
+	Matrix2d shoulderrotationmatrix;
+	Matrix2d elbowrotationmatrix;
+	shoulderrotationmatrix << cos(29.49* M_PI / 180), cos(60.51* M_PI / 180),
+		cos(119.49* M_PI / 180), cos(29.49* M_PI / 180);
+	elbowrotationmatrix << cos(59.87* M_PI / 180), cos(30.13* M_PI / 180),
+		cos(30.13* M_PI / 180), cos(120.13* M_PI / 180);
+
+	shoulderforce = shoulderrotationmatrix * shoulderforce;
+	elbowforce = elbowrotationmatrix * elbowforce;
+
+	ForceVector[0] = shoulderforce(0);
+	ForceVector[1] = shoulderforce(1);
+	ForceVector[2] = elbowforce(0);
+	ForceVector[3] = elbowforce(1);
+}
+
+void FatigueTest::Trans2Filter2(double TransData[4], double FiltedData[4]) {
+	double Wc = 5;
+	double Ts = 0.1;
+	static int i = 0;
+	static double Last_Buffer[4] = { 0 };
+	static double Last2_Buffer[4] = { 0 };
+	static double Force_Buffer[4] = { 0 };
+	static double Last_FT[4] = { 0 };
+	static double Last2_FT[4] = { 0 };
+	for (int m = 0; m < 4; m++)
+	{
+		if (i == 0)
+		{
+			Last2_Buffer[m] = TransData[m];
+			FiltedData[m] = 0;
+			i++;
+		}
+		else if (i == 1)
+		{
+			Last_Buffer[m] = TransData[m];
+			FiltedData[m] = 0;
+			i++;
+		}
+		else
+		{
+			//二阶巴特沃斯低通滤波器
+			Force_Buffer[m] = TransData[m];
+			FiltedData[m] = (1 / (Wc*Wc + 2 * 1.414*Wc / Ts + 4 / (Ts*Ts)))*((Wc*Wc)*Force_Buffer[m]
+				+ (2 * Wc*Wc)*Last_Buffer[m]
+				+ (Wc*Wc)*Last2_Buffer[m]
+				- (2 * Wc*Wc - 8 / (Ts*Ts))*Last_FT[m]
+				- (Wc*Wc - 2 * 1.414*Wc / Ts + 4 / (Ts*Ts))*Last2_FT[m]);
+
+			Last2_FT[m] = Last_FT[m];
+			Last_FT[m] = FiltedData[m];
+			Last2_Buffer[m] = Last_Buffer[m];
+			Last_Buffer[m] = Force_Buffer[m];
+		}
+	}
+}
+
+void FatigueTest::FiltedVolt2Vel2(double ForceVector[4]) {
+	MatrixXd vel(2, 1);
+	MatrixXd pos(2, 1);
+
+	VectorXd shoulder_force_vector(3);
+	VectorXd elbow_force_vector(3);
+	VectorXd six_dimensional_force_simulation(6);
+
+	double angle[2];
+	double moment[5];
+
+	m_pControlCard->GetEncoderData(angle);
+
+	pos(0, 0) = angle[0];
+	pos(1, 0) = angle[1];
+	shoulder_force_vector(0) = ForceVector[0];
+	shoulder_force_vector(1) = ForceVector[1];
+	shoulder_force_vector(2) = 0;
+	elbow_force_vector(0) = ForceVector[2];
+	elbow_force_vector(1) = ForceVector[3];
+	elbow_force_vector(2) = 0;
+
+	MomentBalance(shoulder_force_vector, elbow_force_vector, angle, moment);
+
+	m_shoulder_moment = moment[0];
+	m_elbow_moment = moment[2];
 }

@@ -275,6 +275,74 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 	moment = jacobian1 * six_sensor_data;
 }
 
+template<typename DerivedA, typename DerivedB>
+void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, double motorangle[2], double moment[5]) {
+	Matrix3d axisdirection_hat[4];
+	Matrix3d spinor_hat[4];
+	Matrix3d so3[4];
+	Matrix3d SO3[4];
+
+
+
+	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
+	Vector3d pa1_3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, 0, 0);
+	Vector3d f2_5;
+	Vector3d f1_3;
+	Vector3d p5_4 = Vector3d(0, -d5, -r5);
+	Vector3d p4_3 = Vector3d(d3, 0, 0);
+	Vector3d p3_2 = Vector3d(0, dy_2, dz_2);
+	Vector3d p2_1 = Vector3d(0, -d1, -d2);
+
+
+	VectorXd Co_tem(6);
+	VectorXd joint_angle(5);
+
+	//Co_tem << 20, 20, 20, 1, 1, 1;//六维力的放大系数
+	//Co = Co_tem.asDiagonal();
+
+	MatrixXd Pos(2, 1);
+	Pos(0, 0) = motorangle[0];
+	Pos(1, 0) = motorangle[1];
+
+	MotorAngleToJointAngle(Pos, joint_angle);
+
+	//罗德里格斯公式,这里只计算了轴2到轴5
+	for (int i = 0; i < 4; ++i) {
+		Vector3ToMatrix3X3(AxisDirection[i + 1], axisdirection_hat[i]);
+		so3[i] = axisdirection_hat[i] * (M_PI / 180)*	joint_angle[i + 1];
+		SO3[i] = so3[i].exp();
+	}
+
+	Vector3d f5_5;
+	Vector3d n5_5;
+	Vector3d f4_4;
+	Vector3d n4_4;
+	Vector3d f3_3;
+	Vector3d n3_3;
+	Vector3d f2_2;
+	Vector3d n2_2;
+	Vector3d f1_1;
+	Vector3d n1_1;
+
+	//力矩平衡公式
+	f5_5 = elbowforcevector;
+	n5_5 = pa2_5.cross(f5_5);
+	f4_4 = SO3[3] * f5_5;
+	n4_4 = SO3[3] * n5_5 + p5_4.cross(f4_4);
+	f3_3 = SO3[2] * f4_4 + f1_3;
+	n3_3 = SO3[2] * n4_4 + p4_3.cross(SO3[2] * f4_4) + pa1_3.cross(f1_3);
+	f2_2 = SO3[1] * f3_3;
+	n2_2 = SO3[1] * n3_3 + p3_2.cross(f2_2);
+	f1_1 = SO3[0] * f2_2;
+	n1_1 = SO3[0] * n2_2 + p2_1.cross(f1_1);
+
+	moment[0] = n1_1(3);
+	moment[1] = n2_2(3);
+	moment[2] = n3_3(3);
+	moment[3] = n4_4(3);
+	moment[4] = n5_5(3);
+}
+
 //用来将叉乘转成点乘
 template<typename DerivedA, typename DerivedB>
 void XmultiToDotmulti(const MatrixBase<DerivedA>& axis, MatrixBase<DerivedB>& axis_hat) {	
