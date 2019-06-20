@@ -4,6 +4,25 @@
 
 using namespace Eigen;
 
+DataAcquisition::DataAcquisition() {
+	int status;
+	status = DAQmxCreateTask("", &m_task_handle);
+	status = DAQmxCreateAIVoltageChan(m_task_handle, kPressureForceChannel, "",
+									  DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
+	status = DAQmxCfgSampClkTiming(m_task_handle, NULL, 100, DAQmx_Val_Rising,
+								   DAQmx_Val_ContSamps, 2);
+
+	status = DAQmxSetReadRelativeTo(m_task_handle, DAQmx_Val_MostRecentSamp);
+	status = DAQmxSetReadOffset(m_task_handle, 0);
+	status = DAQmxStartTask(m_task_handle);
+	status = DAQmxStopTask(m_task_handle);
+
+}
+
+DataAcquisition::~DataAcquisition() {
+
+}
+
 void DataAcquisition::AcquisiteTorqueData() {
 	TaskHandle  taskHandle = 0;
 	int32       read = 0;
@@ -69,4 +88,33 @@ void DataAcquisition::AcquisiteSixDemensionData(double output_buf[6]) {
 	for (int i = 0; i < 6; ++i) {
 		output_buf[i] = result(i);
 	}
+}
+
+void DataAcquisition::AcquisiteTensionData(double tension_output[8]) {
+	int32 read = 0;
+	int status = 0;
+	double tension_data[8]{ 0 };
+	//status = DAQmxCreateTask("PressureDataTask", &taskHandle);
+	//status = DAQmxCreateAIVoltageChan(taskHandle, kPressureForceChannel, "PressureDataChannel", DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
+	//status = DAQmxCfgSampClkTiming(taskHandle, "OnboardClock", 1000, DAQmx_Val_Rising,DAQmx_Val_ContSamps, 2);
+	//status = DAQmxStartTask(taskHandle);
+	status = DAQmxReadAnalogF64(m_task_handle, 1, 0.2, DAQmx_Val_GroupByScanNumber, tension_data, 8, &read, NULL);
+	//status = DAQmxStopTask(taskHandle);
+	//status = DAQmxClearTask(taskHandle);
+
+	for (int i = 0; i < 8; ++i) {
+		tension_output[i] = tension_data[i];
+	}
+}
+
+bool DataAcquisition::StartTask() {
+	int status;
+	status = DAQmxStartTask(m_task_handle);
+	return status == 0;
+}
+
+bool DataAcquisition::StopTask() {
+	int status;
+	status = DAQmxStopTask(m_task_handle);
+	return status == 0;
 }

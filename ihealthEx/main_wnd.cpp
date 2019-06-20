@@ -92,7 +92,7 @@ CControlUI *CMainWnd::InitializeChart() {
 	m_UIWnd = CreateWindow(_T("BUTTON"), _T("win32"), WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON, 0, 32, 1920, 1000, m_pm.GetPaintWindow(), NULL, NULL, NULL);
 	pUI->Attach(m_UIWnd);
 	m_ChartWnd.Attach(m_UIWnd, kTypeSplit);
-	m_ChartWnd.GetChart()->ResizePlots(1, 3, 2);
+	m_ChartWnd.GetChart()->ResizePlots(1, 4, 2);
 
 	CChart *chart = m_ChartWnd.GetChart();
 	chart->AddCurve(x, y, 1, 0);
@@ -101,10 +101,10 @@ CControlUI *CMainWnd::InitializeChart() {
 	chart->AddCurve(x, y, 1, 3);
 	chart->AddCurve(x, y, 1, 4);
 	chart->AddCurve(x, y, 1, 5);
-	/*chart->AddCurve(x, y, 1, 6);
+	chart->AddCurve(x, y, 1, 6);
 	chart->AddCurve(x, y, 1, 7);
-	chart->AddCurve(x, y, 1, 8);
-	chart->AddCurve(x, y, 1, 9);*/
+	//chart->AddCurve(x, y, 1, 8);
+	//chart->AddCurve(x, y, 1, 9);
 
 	chart->SetTitle(_T("肩部力矩"), 0);
 	chart->SetTitle(_T("肘部力矩"), 1);
@@ -112,8 +112,8 @@ CControlUI *CMainWnd::InitializeChart() {
 	chart->SetTitle(_T("肘部tau"), 3);
 	chart->SetTitle(_T("肩部差值"), 4);
 	chart->SetTitle(_T("肘部差值"), 5);
-	//chart->SetTitle(_T("肘部反向拉力"), 6);
-	//chart->SetTitle(_T("肩部反向拉力"), 7);
+	chart->SetTitle(_T("肘部反向拉力"), 6);
+	chart->SetTitle(_T("肩部反向拉力"), 7);
 	//chart->SetTitle(_T("肘部力矩"), 8);
 	//chart->SetTitle(_T("肩部力矩"), 9);
 
@@ -129,8 +129,8 @@ void CMainWnd::OnDataUpdate(LPARAM lParam) {
 	m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->shoulder_angle_curve, 500, 3);
 	m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve1, 500, 4);
 	m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve2, 500, 5);
-	//m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve3, 500, 6);
-	//m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve2, 500, 7);
+	m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve3, 500, 6);
+	m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->pull_force_curve4, 500, 7);
 	//m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->elbow_torque_curve, 500, 8);
 	//m_ChartWnd.GetChart()->UpdateCurveByID(data_id, mTest->x_axis, mTest->shoulder_torque_curve, 500, 9);
 	m_ChartWnd.ReDraw();

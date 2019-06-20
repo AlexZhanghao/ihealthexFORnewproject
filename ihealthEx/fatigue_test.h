@@ -18,6 +18,8 @@ public:
 	void StartMove();
 	//ATI
 	void timerAcquisit();
+	//压力传感器
+	void PressureSensorAcquisit();
 	void PositionReset();
 	void StopMove();
 	void AbsoluteMove();
@@ -40,6 +42,8 @@ public:
 
 	bool m_stop = true;
 
+	double two_arm_offset[8];
+
 public:
 	
 	double moments[6];
@@ -55,6 +59,7 @@ private:
 	void WriteDataToFile(int index);
 	void UpdataDataArray();
 	void UpdataDataArray(double buf[6]);
+	void UpdataDataArray2(double sensordata[8]);
 
 	//将原始值进行坐标变换
 	void Raw2Trans(double RAWData[6], double DistData[6]);

@@ -197,6 +197,27 @@ void FatigueTest::UpdataDataArray(double buf[6]) {
 	shoulder_torque_curve[499] = m_pDataAcquisition->torque_data[1];*/
 }
 
+void FatigueTest::UpdataDataArray2(double sensordata[8]) {
+	for (int i = 0; i < 499; i++) {
+		elbow_angle_error[i] = elbow_angle_error[i + 1];
+		shoulder_angle_error[i] = shoulder_angle_error[i + 1];
+		elbow_angle_curve[i] = elbow_angle_curve[i + 1];
+		shoulder_angle_curve[i] = shoulder_angle_curve[i + 1];
+		pull_force_curve1[i] = pull_force_curve1[i + 1];
+		pull_force_curve2[i] = pull_force_curve2[i + 1];
+		pull_force_curve3[i] = pull_force_curve3[i + 1];
+		pull_force_curve4[i] = pull_force_curve4[i + 1];
+	}
+	elbow_angle_error[499] = sensordata[0];
+	shoulder_angle_error[499] = sensordata[1];
+	elbow_angle_curve[499] = sensordata[2];
+	shoulder_angle_curve[499] = sensordata[3];
+	pull_force_curve1[499] = sensordata[4];
+	pull_force_curve2[499] = sensordata[5];
+	pull_force_curve3[499] = sensordata[6];
+	pull_force_curve4[499] = sensordata[7];
+}
+
 void FatigueTest::AbsoluteMove() {
 	if (!IsInitialed()) {
 		return;
@@ -223,7 +244,9 @@ unsigned int __stdcall TestThread(PVOID pParam) {
 	//国产六维力
 	//mTest->StartMove();
 	//ATI六维力
-	mTest->timerAcquisit();
+	//mTest->timerAcquisit();
+	//压力传感器
+	mTest->PressureSensorAcquisit();
 }
 
 //unsigned int __stdcall AcquisitionThread(PVOID pParam) {
@@ -399,5 +422,46 @@ void FatigueTest::FiltedVolt2Vel(double FiltedData[6]) {
 		m_shoulder_vel = 5;
 	} else if (m_shoulder_vel < -5) {
 		m_shoulder_vel = -5;
+	}
+}
+
+void FatigueTest::PressureSensorAcquisit() {
+	if (!IsInitialed()) {
+		return;
+	}
+
+	double pressure_data[8] = { 0 };
+	double pull_data[4] { 0 };
+	double distData[8] = { 0 };
+	double filtedData[8] = { 0 };
+	
+	//将肩肘部合在一起
+	double two_arm_sum[8] { 0.0 };
+	double two_arm_buf[8] { 0.0 };
+	for (int i = 0; i < 10; ++i) {
+		m_pDataAcquisition->AcquisiteTensionData(two_arm_buf);
+		for (int j = 0; j < 8; ++j) {
+			two_arm_sum[i] += two_arm_buf[i];
+		}
+	}
+
+	for (int i = 0; i < 8; ++i) {
+		two_arm_offset[i] = two_arm_sum[i] / 10;
+	}
+
+	m_pDataAcquisition->StopTask();
+	m_pDataAcquisition->StartTask();
+
+
+	while (true) {
+		m_pDataAcquisition->AcquisiteTensionData(pressure_data);
+		UpdataDataArray2(pressure_data);
+		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
+
+		//Raw2Trans(readings, distData);
+		//Trans2Filter(distData, filtedData);
+		//FiltedVolt2Vel(filtedData);
+
+		Sleep(100);
 	}
 }
