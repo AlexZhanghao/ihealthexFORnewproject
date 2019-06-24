@@ -93,6 +93,16 @@ void pinv(const MatrixBase<DerivedA>& A, const MatrixBase<DerivedB>&G, MatrixBas
 }
 
 template<typename DerivedA, typename DerivedB>
+void pinv2(const MatrixBase<DerivedA>& A, const MatrixBase<DerivedB>& B) {
+	//这里在算新版的投影矩阵，将雅克比矩阵乘耦合矩阵换成了耦合矩阵
+	MatrixXd A_temp(2, 2);
+	MatrixXd p(2, 5);
+	A_temp = A.transpose()*A;
+	p = (A_temp.inverse())*A.transpose();
+	B = p;
+}
+
+template<typename DerivedA, typename DerivedB>
 void Vector3ToMatrix3X3(const MatrixBase<DerivedA>& X, MatrixBase<DerivedB>& Y) {
 	MatrixXd y(3, 3);
 	y.setZero();
@@ -275,8 +285,8 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 	moment = jacobian1 * six_sensor_data;
 }
 
-template<typename DerivedA, typename DerivedB>
-void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, double motorangle[2], double moment[5]) {
+template<typename DerivedA, typename DerivedB, typename DerivedC>
+void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, MatrixBase<DerivedC>& moment ,double motorangle[2] ) {
 	Matrix3d axisdirection_hat[4];
 	Matrix3d spinor_hat[4];
 	Matrix3d so3[4];
@@ -347,11 +357,11 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	//cout << "f2_2:\n" << f2_2 << "\n" << "n2_2:\n" << n2_2 << endl;
 	//cout << "f1_1:\n" << f1_1 << "\n" << "n1_1:\n" << n1_1 << endl;
 
-	moment[0] = n1_1(2);
-	moment[1] = n2_2(2);
-	moment[2] = n3_3(2);
-	moment[3] = n4_4(2);
-	moment[4] = n5_5(2);
+	moment(0) = n1_1(2);
+	moment(1) = n2_2(2);
+	moment(2) = n3_3(2);
+	moment(3) = n4_4(2);
+	moment(4) = n5_5(2);
 }
 
 //用来将叉乘转成点乘

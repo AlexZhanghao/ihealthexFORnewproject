@@ -600,13 +600,22 @@ void FatigueTest::Trans2Filter2(double TransData[4], double FiltedData[4]) {
 void FatigueTest::FiltedVolt2Vel2(double ForceVector[4]) {
 	MatrixXd vel(2, 1);
 	MatrixXd pos(2, 1);
+	MatrixXd meta(5, 2);
+	MatrixXd projection_matrix(2, 5);
 
 	VectorXd shoulder_force_vector(3);
 	VectorXd elbow_force_vector(3);
 	VectorXd six_dimensional_force_simulation(6);
+	VectorXd moment(5);
 
 	double angle[2];
-	double moment[5];
+
+	//meta就是传动矩阵η
+	meta << 1, 0,
+		0.88, 0,
+		0, 1,
+		0, 1.3214,
+		0, 0.6607;
 
 	m_pControlCard->GetEncoderData(angle);
 
@@ -619,10 +628,13 @@ void FatigueTest::FiltedVolt2Vel2(double ForceVector[4]) {
 	elbow_force_vector(1) = ForceVector[3];
 	elbow_force_vector(2) = 0;
 
-	MomentBalance(shoulder_force_vector, elbow_force_vector, angle, moment);
+	MomentBalance(shoulder_force_vector, elbow_force_vector, moment, angle);
+	pinv2(meta, projection_matrix);
 
-	m_shoulder_moment = moment[0];
-	m_elbow_moment = moment[2];
+	vel = projection_matrix * moment;
+
+	m_shoulder_moment = moment(0);
+	m_elbow_moment = moment(2);
 
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
