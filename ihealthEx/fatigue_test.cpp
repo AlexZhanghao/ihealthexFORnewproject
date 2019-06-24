@@ -483,6 +483,9 @@ void FatigueTest::PressureSensorAcquisit() {
 			elbow_suboffset[j] = two_arm_suboffset[j + 4];
 		}
 
+		//因为肘部第二位置没有传感器，所以这里把它强制置零
+		elbow_suboffset[1] = 0;
+
 		//将传感器获取的数据滤波
 		//Trans2Filter2(shoulder_suboffset, shoulder_smooth);
 		//Trans2Filter2(elbow_suboffset, elbow_smooth);
@@ -495,6 +498,8 @@ void FatigueTest::PressureSensorAcquisit() {
 		//AllocConsole();
 		//freopen("CONOUT$", "w", stdout);
 		//cout <<"m_shoulder_moment:\n"<< m_shoulder_moment << "\n" << "m_elbow_moment:\n"<< m_elbow_moment << endl;
+		//cout << "shoulder_suboffset1:" << shoulder_suboffset[0] << "   " << "shoulder_suboffset2:" << shoulder_suboffset[1] << "   " << "shoulder_suboffset3:" << shoulder_suboffset[2] << "   " << "shoulder_suboffset4:" << shoulder_suboffset[3] << endl;
+		//cout << "elbow_suboffset1:" << elbow_suboffset[0] << "   " << "elbow_suboffset2:" << elbow_suboffset[1] << "   " << "elbow_suboffset3:" << elbow_suboffset[2] << "   " << "elbow_suboffset4:" << elbow_suboffset[3] << endl;
 
 		m_pDataAcquisition->AcquisiteTorqueData();
 		shoulder_moment = 2 * m_pDataAcquisition->torque_data[1] - shoulder_offset;
