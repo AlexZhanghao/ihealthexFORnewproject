@@ -29,6 +29,9 @@ public:
 	//将传感器的数据处理成两个二维矢量，由于矢量只在两个方向上有作用，故需输出4个数据。这里要先知道传感器的安装位置
 	void SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]);
 
+	//输出力到txt文件
+	void ExportForceData();
+
 public:
 	HWND m_hWnd;
 	double elbow_angle_error[500] { 0 };
@@ -76,12 +79,14 @@ private:
 private:
 	bool is_initialed = false;
 	bool in_test_move = false;
+	bool is_move = false;
 
 	FTWrapper mFTWrapper;
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
 	HANDLE test_thread = nullptr;
+	HANDLE ATI_thread = nullptr;
 	HANDLE acquisition_thread = nullptr;
 
 	double m_shoulder_vel;

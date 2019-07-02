@@ -93,16 +93,6 @@ void pinv(const MatrixBase<DerivedA>& A, const MatrixBase<DerivedB>&G, MatrixBas
 }
 
 template<typename DerivedA, typename DerivedB>
-void pinv2(const MatrixBase<DerivedA>& A, const MatrixBase<DerivedB>& B) {
-	//这里在算新版的投影矩阵，将雅克比矩阵乘耦合矩阵换成了耦合矩阵
-	MatrixXd A_temp(2, 2);
-	MatrixXd p(2, 5);
-	A_temp = A.transpose()*A;
-	p = (A_temp.inverse())*A.transpose();
-	B = p;
-}
-
-template<typename DerivedA, typename DerivedB>
 void Vector3ToMatrix3X3(const MatrixBase<DerivedA>& X, MatrixBase<DerivedB>& Y) {
 	MatrixXd y(3, 3);
 	y.setZero();
@@ -285,17 +275,20 @@ void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>
 	moment = jacobian1 * six_sensor_data;
 }
 
-template<typename DerivedA, typename DerivedB, typename DerivedC>
-void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, MatrixBase<DerivedC>& moment ,double motorangle[2] ) {
+template<typename DerivedA, typename DerivedB>
+void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, double motorangle[2], double moment[5]) {
 	Matrix3d axisdirection_hat[4];
 	Matrix3d spinor_hat[4];
 	Matrix3d so3[4];
 	Matrix3d SO3[4];
 
-
+	Matrix3d R54;
+	Matrix3d R43;
+	Matrix3d R32;
+	Matrix3d R21;
 
 	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
-	Vector3d pa1_3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, 0, 0);
+	Vector3d pa1_3 = Vector3d(d3-shouler_installationsite_to_coordinate4, dy_2, 0);
 	Vector3d f2_5;
 	Vector3d f1_3;
 	Vector3d p5_4 = Vector3d(0, -d5, -r5);
@@ -305,7 +298,7 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 
 	//由于最后得出的力和力矩都太小，这里把力放大看看
 	f1_3 = shoulderforcevector * 20;
-	f2_5 = elbowforcevector * 20;
+	f2_5 = elbowforcevector * 10;
 
 	VectorXd Co_tem(6);
 	VectorXd joint_angle(5);
@@ -319,12 +312,33 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 
 	MotorAngleToJointAngle(Pos, joint_angle);
 
-	//罗德里格斯公式,这里只计算了轴2到轴5
-	for (int i = 0; i < 4; ++i) {
-		Vector3ToMatrix3X3(AxisDirection[i + 1], axisdirection_hat[i]);
-		so3[i] = axisdirection_hat[i] * (M_PI / 180)*	joint_angle[i + 1];
-		SO3[i] = so3[i].exp();
+	for (int i = 0; i < 5; ++i) {
+		joint_angle(i) = (M_PI / 180)*joint_angle(i);
 	}
+
+	R54 << 
+		cos(joint_angle(4)), -sin(joint_angle(4)), 0,
+		0, 0, -1,
+		sin(joint_angle(4)), cos(joint_angle(4)), 0;
+	R43 <<
+		cos(joint_angle(3)), -sin(joint_angle(3)), 0,
+		sin(joint_angle(3)), cos(joint_angle(3)), 0,
+		0, 0, 1;
+	R32 <<
+		cos(joint_angle(2)), -sin(joint_angle(2)), 0,
+		0, 0, 1,
+		-sin(joint_angle(2)), -cos(joint_angle(2)), 0;
+	R21 <<
+		cos(joint_angle(1)), -sin(joint_angle(1)), 0,
+		0, 0, -1,
+		sin(joint_angle(1)), cos(joint_angle(1)), 0;
+
+	//罗德里格斯公式,这里只计算了轴2到轴5
+	//for (int i = 0; i < 4; ++i) {
+	//	Vector3ToMatrix3X3(AxisDirection[i + 1], axisdirection_hat[i]);
+	//	so3[i] = axisdirection_hat[i] * (M_PI / 180)*	joint_angle[i + 1];
+	//	SO3[i] = so3[i].exp();
+	//}
 
 	Vector3d f5_5;
 	Vector3d n5_5;
@@ -340,14 +354,14 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	//力矩平衡公式
 	f5_5 = f2_5;
 	n5_5 = pa2_5.cross(f5_5);
-	f4_4 = SO3[3] * f5_5;
-	n4_4 = SO3[3] * n5_5 + p5_4.cross(f4_4);
-	f3_3 = SO3[2] * f4_4 + f1_3;
-	n3_3 = SO3[2] * n4_4 + p4_3.cross(SO3[2] * f4_4) + pa1_3.cross(f1_3);
-	f2_2 = SO3[1] * f3_3;
-	n2_2 = SO3[1] * n3_3 + p3_2.cross(f2_2);
-	f1_1 = SO3[0] * f2_2;
-	n1_1 = SO3[0] * n2_2 + p2_1.cross(f1_1);
+	f4_4 = R54 * f5_5;
+	n4_4 = R54 * n5_5 + p5_4.cross(f4_4);
+	f3_3 = R43 * f4_4 + f1_3;
+	n3_3 = R43 * n4_4 + p4_3.cross(R43 * f4_4) + pa1_3.cross(f1_3);
+	f2_2 = R32 * f3_3;
+	n2_2 = R32 * n3_3 + p3_2.cross(f2_2);
+	f1_1 = R21 * f2_2;
+	n1_1 = R21 * n2_2 + p2_1.cross(f1_1);
 
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
@@ -357,11 +371,11 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	//cout << "f2_2:\n" << f2_2 << "\n" << "n2_2:\n" << n2_2 << endl;
 	//cout << "f1_1:\n" << f1_1 << "\n" << "n1_1:\n" << n1_1 << endl;
 
-	moment(0) = n1_1(2);
-	moment(1) = n2_2(2);
-	moment(2) = n3_3(2);
-	moment(3) = n4_4(2);
-	moment(4) = n5_5(2);
+	moment[0] = n1_1(2);
+	moment[1] = n2_2(2);
+	moment[2] = n3_3(2);
+	moment[3] = n4_4(2);
+	moment[4] = n5_5(2);
 }
 
 //用来将叉乘转成点乘
