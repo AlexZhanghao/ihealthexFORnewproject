@@ -31,6 +31,10 @@ public:
 
 	//输出力到txt文件
 	void ExportForceData();
+	//输出力矩传感器数据到txt
+	void ExportTorqueData();
+	//输出压力传感器计算得的力矩数据到txt
+	void ExportMomentData();
 
 public:
 	HWND m_hWnd;
