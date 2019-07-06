@@ -90,6 +90,9 @@
     <ClCompile Include="..\ATI\ATIDAQ\xmltok.c">
       <Filter>源文件\ATI</Filter>
     </ClCompile>
+    <ClCompile Include="sensordata_processing.cpp">
+      <Filter>源文件\Robot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control_card.h">
@@ -139,6 +142,9 @@
     </ClInclude>
     <ClInclude Include="..\ATI\ATIDAQ\xmltok.h">
       <Filter>源文件\ATI</Filter>
+    </ClInclude>
+    <ClInclude Include="sensordata_processing.h">
+      <Filter>头文件\Robot</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

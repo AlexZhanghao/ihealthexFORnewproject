@@ -175,6 +175,7 @@
     <ClCompile Include="main_wnd.cpp" />
     <ClCompile Include="ihealthEx.cpp" />
     <ClCompile Include="passive_mode.cpp" />
+    <ClCompile Include="sensordata_processing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ATI\ATIDAQ\DAQSys.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="main_wnd.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="passive_mode.h" />
+    <ClInclude Include="sensordata_processing.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

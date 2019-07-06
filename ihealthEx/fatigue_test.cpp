@@ -14,6 +14,11 @@ double Force_b = 1;
 double shoulder_offset ;
 double elbow_offset ;
 double moment1[8] { 0.0 };
+
+const double shoulder_moment_variance = 4.3769 / 10000;
+const double elbow_moment_variance = 1.2576 / 10000;
+const double shoulder_torque_variance = 1.4634 / 100000;
+const double elbow_torque_variance = 2.2896 / 100000;
 	
 vector<double> force_data[4];
 vector<double> torque_data[2];
@@ -29,6 +34,7 @@ void FatigueTest::Initial(HWND hWnd) {
 	m_pControlCard->Initial();
 	m_pDataAcquisition = new DataAcquisition();
 	m_pFileWriter = new FileWriter();
+
 	for (int i = 0; i < 500; ++i) {
 		x_axis[i] = i;
 	}
@@ -498,9 +504,9 @@ void FatigueTest::PressureSensorAcquisit() {
 		//Trans2Filter2(elbow_suboffset, elbow_smooth);
 
 		//将传感器数据转成力矢量
-		SensorDataToForceVector(shoulder_suboffset, elbow_suboffset, force_vector);
+		m_psensorprocess.SensorDataToForceVector(shoulder_suboffset, elbow_suboffset, force_vector);
 
-		FiltedVolt2Vel2(force_vector);
+		MomentCalculation(force_vector);
 
 		//AllocConsole();
 		//freopen("CONOUT$", "w", stdout);
@@ -516,15 +522,19 @@ void FatigueTest::PressureSensorAcquisit() {
 		torque_data[0].push_back(shoulder_moment);
 		torque_data[1].push_back(elbow_moment);
 
-		shoulder_difference = m_shoulder_moment - shoulder_moment;
-		elbow_difference = m_elbow_moment - elbow_moment;
+		//shoulder_difference = m_shoulder_moment - shoulder_moment;
+		//elbow_difference = m_elbow_moment - elbow_moment;
+
+		shoulder_fusion = m_psensorprocess.DataFusion(m_shoulder_moment, shoulder_moment, shoulder_moment_variance, shoulder_torque_variance);
+		elbow_fusion = m_psensorprocess.DataFusion(m_elbow_moment, elbow_moment, elbow_moment_variance, elbow_torque_variance);
 
 		output_moment[0] = m_shoulder_moment;
 		output_moment[1] = m_elbow_moment;
-		output_moment[2] = shoulder_tau;
-		output_moment[3] = elbow_tau;
+		output_moment[2] = shoulder_fusion;
+		output_moment[3] = elbow_fusion;
 		output_moment[4] = shoulder_moment;
 		output_moment[5] = elbow_moment;
+
 
 
 		//AllocConsole();
@@ -539,44 +549,6 @@ void FatigueTest::PressureSensorAcquisit() {
 	ExportMomentData();
 	ExportTorqueData();
 	//ExportForceData();
-}
-
-void FatigueTest::SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]) {
-	double shoulderdataX = shouldersensordata[0] - shouldersensordata[1];
-	double shoulderdataY = shouldersensordata[2] - shouldersensordata[3];
-	double elbowdataX = elbowsensordata[0] - elbowsensordata[1];
-	double elbowdataY = elbowsensordata[2] - elbowsensordata[3];
-
-	//合成的力矢量
-	Vector2d shoulderforce;
-	Vector2d elbowforce;
-	shoulderforce << shoulderdataX, shoulderdataY;
-	elbowforce << elbowdataX, elbowdataY;
-
-	force_data[0].push_back(shoulderdataX);
-	force_data[1].push_back(shoulderdataY);
-	force_data[2].push_back(elbowdataX);
-	force_data[3].push_back(elbowdataY);
-
-	//将力分别旋转到坐标系3、5上面
-	//Matrix2d shoulderrotationmatrix;
-	//Matrix2d elbowrotationmatrix;
-	//shoulderrotationmatrix << cos(29.49* M_PI / 180), cos(60.51* M_PI / 180),
-	//	cos(119.49* M_PI / 180), cos(29.49* M_PI / 180);
-	//elbowrotationmatrix << cos(59.87* M_PI / 180), cos(30.13* M_PI / 180),
-	//	cos(30.13* M_PI / 180), cos(120.13* M_PI / 180);
-
-	//shoulderforce = shoulderrotationmatrix * shoulderforce;
-	//elbowforce = elbowrotationmatrix * elbowforce;
-
-	//AllocConsole();
-	//freopen("CONOUT$", "w", stdout);
-	//cout <<"shoulderforce:\n"<< shoulderforce << "\n" << "elbowforce:\n"<<elbowforce << endl;
-
-	ForceVector[0] = shoulderforce(0);
-	ForceVector[1] = shoulderforce(1);
-	ForceVector[2] = elbowforce(0);
-	ForceVector[3] = elbowforce(1);
 }
 
 void FatigueTest::Trans2Filter2(double TransData[4], double FiltedData[4]) {
@@ -620,7 +592,7 @@ void FatigueTest::Trans2Filter2(double TransData[4], double FiltedData[4]) {
 	}
 }
 
-void FatigueTest::FiltedVolt2Vel2(double ForceVector[4]) {
+void FatigueTest::MomentCalculation(double ForceVector[4]) {
 	MatrixXd vel(2, 1);
 	MatrixXd pos(2, 1);
 

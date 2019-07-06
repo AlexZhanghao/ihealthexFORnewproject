@@ -3,6 +3,7 @@
 #include "data_acquisition.h"
 #include "file_writer.h"
 #include "FTWrapper.h"
+#include"sensordata_processing.h"
 
 #define CCHART_UPDATE (2050)
 
@@ -25,9 +26,6 @@ public:
 	void AbsoluteMove();
 	bool IsErrorHappened();
 	void AcquisiteData();
-
-	//将传感器的数据处理成两个二维矢量，由于矢量只在两个方向上有作用，故需输出4个数据。这里要先知道传感器的安装位置
-	void SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]);
 
 	//输出力到txt文件
 	void ExportForceData();
@@ -63,6 +61,8 @@ public:
 	double elbow_tau;
 	double shoulder_difference;
 	double elbow_difference;
+	double shoulder_fusion;
+	double elbow_fusion;
 
 
 private:
@@ -78,7 +78,7 @@ private:
 	//用来对压力传感器数据进行滤波
 	void Trans2Filter2(double TransData[4], double FiltedData[4]);
 	void FiltedVolt2Vel(double FiltedData[6]);
-	void FiltedVolt2Vel2(double ForceVector[4]);
+	void MomentCalculation(double ForceVector[4]);
 
 private:
 	bool is_initialed = false;
@@ -89,6 +89,7 @@ private:
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
+	sensorprocess m_psensorprocess;
 	HANDLE test_thread = nullptr;
 	HANDLE ATI_thread = nullptr;
 	HANDLE acquisition_thread = nullptr;
