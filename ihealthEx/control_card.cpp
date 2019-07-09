@@ -127,21 +127,6 @@ void ControlCard::GetEncoderData(double EncoderData[2]) {
 	EncoderData[1] = raw_arm * VEL_TO_PALSE;
 }
 
-//电机运动，在运动之前首先取得光电开关的值，用于限位
-void ControlCard::MotorVelocityMove(I32 axis_id, double velocity) {
-	GetLimitSwitchStatus();
-	switch (axis_id) {
-		case SHOULDER_AXIS_ID:
-			ShoulderMotorVelocityMove(velocity);
-			break;
-		case ELBOW_AXIS_ID:
-			ElbowMotorVelocityMove(velocity);
-			break;
-		default:
-			break;
-	}
-}
-
 void ControlCard::VelocityMove(I32 axis_id, double vel) {
 	GetLimitSwitchStatus();
 	bool limit_switchs[2];
@@ -190,62 +175,6 @@ void ControlCard::VelMove(short AxisId, double Vel) {
 	}
 	else {
 		APS_vel(AxisId, 0, afterConvert, 0);
-	}
-}
-
-//肩部电机运动，肩部光电开关进行限位
-void ControlCard::ShoulderMotorVelocityMove(double velocity) {
-	if (!shoulder_limit_switch_status_[0] && !shoulder_limit_switch_status_[1]) {
-		MoveInVelocityMode(SHOULDER_AXIS_ID, velocity);
-	} else if (shoulder_limit_switch_status_[0]) {
-		if (velocity > 0) {
-			MoveInVelocityMode(SHOULDER_AXIS_ID, velocity);
-		} else {
-			APS_stop_move(SHOULDER_AXIS_ID);
-		}
-	} else if (shoulder_limit_switch_status_[1]) {
-		if (velocity < 0) {
-			MoveInVelocityMode(SHOULDER_AXIS_ID, velocity);
-		} else {
-			APS_stop_move(SHOULDER_AXIS_ID);
-		}
-	}
-}
-
-//肘部电机运动，肘部光电开关进行限位
-void ControlCard::ElbowMotorVelocityMove(double velocity) {
-	if (!elbow_limit_switch_status_[0] && !elbow_limit_switch_status_[1]) {
-		MoveInVelocityMode(ELBOW_AXIS_ID, velocity);
-	} else if (elbow_limit_switch_status_[0]) {
-		if (velocity > 0) {
-			MoveInVelocityMode(ELBOW_AXIS_ID, velocity);
-		} else {
-			APS_stop_move(ELBOW_AXIS_ID);
-		}
-	} else if (shoulder_limit_switch_status_[1]) {
-		if (velocity < 0) {
-			MoveInVelocityMode(ELBOW_AXIS_ID, velocity);
-		} else {
-			APS_stop_move(ELBOW_AXIS_ID);
-		}
-	}
-}
-
-
-void ControlCard::MoveInVelocityMode(I32 axis_id, double velocity) {
-	double max_velocity = (fabs(velocity) / VEL_TO_PALSE);
-
-	if (!axis_status_) {
-		SetMotor(MOTOR_ON);
-	}
-	if (!clutch_status_) {
-		SetClutch(CLUTCH_ON);
-	}
-
-	if (velocity > 0) {
-		APS_vel(axis_id, 0, max_velocity, 0);
-	} else {
-		APS_vel(axis_id, 1, max_velocity, 0);
 	}
 }
 

@@ -34,7 +34,6 @@ public:
 	void GetLimitSwitchStatus();
 	void GetEncoderData();
 	void GetEncoderData(double buf[2]);
-	void MotorVelocityMove(I32 axis_id, double velocity);
 	void VelocityMove(I32 axis_id, double vel);
 	void SetLimitSwitchsByAxisId(I32 axis_id, bool *limit_switchs);
 	void MotorAbsoluteMove(I32 axis_id, double position, double velocity);
@@ -65,9 +64,6 @@ private:
 
 private:
 	I32 FindSuitableControlCard(I32 borad_id_in_bits);
-	void ShoulderMotorVelocityMove(double velocity);
-	void ElbowMotorVelocityMove(double velocity);
-	void MoveInVelocityMode(I32 axis_id, double velocity);
 	bool OutOfWorkingArea(double vel, bool *limit_switches);
 	void VelMove(short AxisId, double Vel);
 	
