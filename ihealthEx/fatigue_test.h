@@ -4,6 +4,7 @@
 #include "file_writer.h"
 #include "FTWrapper.h"
 #include"sensordata_processing.h"
+#include"boundarydetection.h"
 
 #define CCHART_UPDATE (2050)
 
@@ -15,6 +16,8 @@ public:
 	bool IsInitialed();
 
 	void StartTest();
+	void StartAbsoulteMove();
+	void AbsoluteMove();
 	//国产六维力
 	void StartMove();
 	//ATI
@@ -23,7 +26,6 @@ public:
 	void PressureSensorAcquisit();
 	void PositionReset();
 	void StopMove();
-	void AbsoluteMove();
 	bool IsErrorHappened();
 	void AcquisiteData();
 
@@ -68,7 +70,6 @@ public:
 private:
 	void WriteDataToFile(int index);
 	void UpdataDataArray();
-	void UpdataDataArray(double buf[6]);
 	void UpdataDataArray2(double sensordata[8]);
 
 	//将原始值进行坐标变换
@@ -79,17 +80,21 @@ private:
 	void Trans2Filter2(double TransData[4], double FiltedData[4]);
 	void FiltedVolt2Vel(double FiltedData[6]);
 	void MomentCalculation(double ForceVector[4]);
+	//将传感器的数据处理成两个二维矢量，由于矢量只在两个方向上有作用，故需输出4个数据。这里要先知道传感器的安装位置
+	void SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]);
 
 private:
 	bool is_initialed = false;
 	bool in_test_move = false;
-	bool is_move = false;
+	bool is_testing = false;
+	bool is_moving = false;
 
 	FTWrapper mFTWrapper;
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;
 	sensorprocess m_psensorprocess;
+	boundaryDetection m_boundarydetect;
 	HANDLE test_thread = nullptr;
 	HANDLE ATI_thread = nullptr;
 	HANDLE acquisition_thread = nullptr;
@@ -99,4 +104,8 @@ private:
 
 	double m_shoulder_moment;
 	double m_elbow_moment;
+
+
+
+	I32 option = 0x1000;//ptp运动模式控制
 };

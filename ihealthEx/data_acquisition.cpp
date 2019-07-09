@@ -4,6 +4,8 @@
 
 using namespace Eigen;
 
+const double DataAcquisition::kRawToReal = 2.0;
+
 DataAcquisition::DataAcquisition() {
 	int status;
 	status = DAQmxCreateTask("", &m_task_handle);
@@ -117,4 +119,20 @@ bool DataAcquisition::StopTask() {
 	int status;
 	status = DAQmxStopTask(m_task_handle);
 	return status == 0;
+}
+
+double DataAcquisition::ShoulderForwardPull() {
+	return kRawToReal * pull_sensor_data[0];
+}
+
+double DataAcquisition::ShoulderBackwardPull() {
+	return kRawToReal * pull_sensor_data[1];
+}
+
+double DataAcquisition::ElbowForwardPull() {
+	return kRawToReal * pull_sensor_data[2];
+}
+
+double DataAcquisition::ElbowBackwardPull() {
+	return kRawToReal * pull_sensor_data[3];
 }

@@ -93,6 +93,9 @@
     <ClCompile Include="sensordata_processing.cpp">
       <Filter>源文件\Robot</Filter>
     </ClCompile>
+    <ClCompile Include="boundarydetection.cpp">
+      <Filter>源文件\Robot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control_card.h">
@@ -146,5 +149,13 @@
     <ClInclude Include="sensordata_processing.h">
       <Filter>头文件\Robot</Filter>
     </ClInclude>
+    <ClInclude Include="boundarydetection.h">
+      <Filter>头文件\Robot</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="main_wnd.xml">
+      <Filter>源文件\UI</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -14,11 +14,14 @@ public:
 	bool StartTask();
 	bool StopTask();
 
+	double ShoulderForwardPull();
+	double ShoulderBackwardPull();
+	double ElbowForwardPull();
+	double ElbowBackwardPull();
+
 public:
 	double torque_data[2] {0};
 	double pull_sensor_data[4] {0};
-
-
 
 
 private:
@@ -27,4 +30,6 @@ private:
 	const char *pull_sensor_channel = "Dev2/ai0:3";
 	const char *six_dimension_force_channel = "Dev1/ai0:5";
 	const char *kPressureForceChannel = "Dev3/ai1:8";
+
+	static const double kRawToReal;
 };

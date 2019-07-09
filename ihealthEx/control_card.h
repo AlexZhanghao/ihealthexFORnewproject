@@ -35,16 +35,23 @@ public:
 	void GetEncoderData();
 	void GetEncoderData(double buf[2]);
 	void MotorVelocityMove(I32 axis_id, double velocity);
+	void VelocityMove(I32 axis_id, double vel);
+	void SetLimitSwitchsByAxisId(I32 axis_id, bool *limit_switchs);
 	void MotorAbsoluteMove(I32 axis_id, double position, double velocity);
 	bool IsMoveFinish();
 	void PositionReset();
 	void StopMove();
+	void Close();
 
 public:
 	double shoulder_position_in_degree;
 	double elbow_position_in_degree;
 	double shoulder_error_in_degree;
 	double elbow_error_in_degree;
+
+public:
+	static const int InputChannels = 24;
+	static const double MaxVel;
 
 private:
 	bool axis_status_;
@@ -61,5 +68,7 @@ private:
 	void ShoulderMotorVelocityMove(double velocity);
 	void ElbowMotorVelocityMove(double velocity);
 	void MoveInVelocityMode(I32 axis_id, double velocity);
+	bool OutOfWorkingArea(double vel, bool *limit_switches);
+	void VelMove(short AxisId, double Vel);
 	
 };

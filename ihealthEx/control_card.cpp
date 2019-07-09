@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+const double ControlCard::MaxVel = 5.0;
+
 ControlCard::ControlCard() :
 	card_name_(0), board_id_(0), total_axis_(0),
 	is_card_initialed_(0), axis_status_(MOTOR_OFF), clutch_status_(CLUTCH_OFF),
@@ -140,6 +142,57 @@ void ControlCard::MotorVelocityMove(I32 axis_id, double velocity) {
 	}
 }
 
+void ControlCard::VelocityMove(I32 axis_id, double vel) {
+	GetLimitSwitchStatus();
+	bool limit_switchs[2];
+	SetLimitSwitchsByAxisId(axis_id, limit_switchs);
+	if (OutOfWorkingArea(vel, limit_switchs)) {
+		APS_stop_move(axis_id);
+	}
+	else {
+		VelMove(axis_id, vel);
+	}
+}
+
+/*根据轴号给limit_switchs赋值*/
+void ControlCard::SetLimitSwitchsByAxisId(I32 axis_id, bool *limit_switchs) {
+	if (axis_id == ELBOW_AXIS_ID) {
+		limit_switchs[0] = elbow_limit_switch_status_[0];
+		limit_switchs[1] = elbow_limit_switch_status_[1];
+	}
+	else if (axis_id == SHOULDER_AXIS_ID) {
+		limit_switchs[0] = shoulder_limit_switch_status_[0];
+		limit_switchs[1] = shoulder_limit_switch_status_[1];
+	}
+}
+
+bool ControlCard::OutOfWorkingArea(double vel, bool *limit_switches) {
+	if ((!limit_switches[0]) && (!limit_switches[1])) {
+		return false;
+	}
+	else if (limit_switches[0] && (vel > 0)) {
+		return false;
+	}
+	else if (limit_switches[1] && (vel < 0)) {
+		return false;
+	}
+	return true;
+}
+
+void ControlCard::VelMove(short AxisId, double Vel) {
+	double afterConvert = (fabs(Vel) / VEL_TO_PALSE);
+	if (afterConvert > MaxVel / VEL_TO_PALSE) {
+		afterConvert = MaxVel / VEL_TO_PALSE;
+	}
+
+	if (Vel > 0) {
+		APS_vel(AxisId, 1, afterConvert, 0);
+	}
+	else {
+		APS_vel(AxisId, 0, afterConvert, 0);
+	}
+}
+
 //肩部电机运动，肩部光电开关进行限位
 void ControlCard::ShoulderMotorVelocityMove(double velocity) {
 	if (!shoulder_limit_switch_status_[0] && !shoulder_limit_switch_status_[1]) {
@@ -207,8 +260,8 @@ void ControlCard::PositionReset() {
 	SetMotor(MOTOR_ON);
 	GetLimitSwitchStatus();
 	while (!shoulder_limit_switch_status_[0] || !elbow_limit_switch_status_[0]) {
-		MotorVelocityMove(SHOULDER_AXIS_ID,-4);
-		MotorVelocityMove(ELBOW_AXIS_ID, -4);
+		VelocityMove(SHOULDER_AXIS_ID,-4);
+		VelocityMove(ELBOW_AXIS_ID, -4);
 	}
 	SetMotor(MOTOR_OFF);
 	SetClutch(CLUTCH_OFF);
@@ -232,3 +285,6 @@ void ControlCard::StopMove() {
 }
 
 
+void ControlCard::Close() {
+	APS_close();
+}

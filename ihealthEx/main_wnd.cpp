@@ -29,10 +29,11 @@ void CMainWnd::Notify(TNotifyUI &msg) {
 	if (msg.sType == _T("click")) {
 		if (name.CompareNoCase(_T("btnInitial")) == 0) {
 			m_pFatigueTest->Initial(m_hWnd);
-		} else if (name.CompareNoCase(_T("btnPositive")) == 0) {
+		} else if (name.CompareNoCase(_T("btnTest")) == 0) {
 			m_pFatigueTest->StartTest();
-			//m_pFatigueTest->AbsoluteMove();
-		} else if (name.CompareNoCase(_T("btnNegative")) == 0) {
+		}else if (name.CompareNoCase(_T("btnMoving")) == 0) {
+			m_pFatigueTest->StartAbsoulteMove();
+		}else if (name.CompareNoCase(_T("btnNegative")) == 0) {
 			m_pFatigueTest->PositionReset();
 		} else if (name.CompareNoCase(_T("btnStop")) == 0) {
 			m_pFatigueTest->StopMove();
