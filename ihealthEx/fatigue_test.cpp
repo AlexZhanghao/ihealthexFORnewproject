@@ -14,6 +14,7 @@ double Force_b = 1;
 double shoulder_offset ;
 double elbow_offset ;
 double moment1[8] { 0.0 };
+double sixdim_shoulder;
 
 const double shoulder_moment_variance = 4.3769 / 10000;
 const double elbow_moment_variance = 1.2576 / 10000;
@@ -109,12 +110,24 @@ void FatigueTest::timerAcquisit() {
 		//	" f2: " << readings[2] << " f3: " << readings[3] <<
 		//	" f4: " << readings[4] << " f5: " << readings[5] << std::endl;
 
-		Raw2Trans(readings, distData);
-		Trans2Filter(distData, filtedData);
-		FiltedVolt2Vel(filtedData);
+		//Raw2Trans(readings, distData);
+		//Trans2Filter(distData, filtedData);
+		//FiltedVolt2Vel(filtedData);
+
+		SixDimensionForceRotation(readings);
+
+		sixdim_shoulder = readings[5];
 
 		Sleep(100);
 	}
+}
+
+void FatigueTest::SixDimensionForceRotation(double sixdimensionforce[6]) {
+	VectorXd sixdim(6);
+	for (int i = 0; i < 6; ++i) {
+		sixdim(i) = sixdimensionforce[i];			
+	}
+	
 }
 
 void FatigueTest::StartMove() {
