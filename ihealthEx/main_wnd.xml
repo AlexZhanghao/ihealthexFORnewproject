@@ -7,6 +7,7 @@
 				<Button name="btnMoving" text="正转" width="100"/>			
 				<Button name="btnNegative" text="复位" width="100"/>
 				<Button name="btnStop" text="停止" width="100" />
+        <Button name="btnZero" text="置零" width="100" />
 			<VerticalLayout />
     	</HorizontalLayout>
 		

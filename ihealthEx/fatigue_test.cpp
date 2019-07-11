@@ -19,8 +19,8 @@ const double shoulder_moment_variance = 4.3769 / 10000;
 const double elbow_moment_variance = 1.2576 / 10000;
 const double shoulder_torque_variance = 1.4634 / 100000;
 const double elbow_torque_variance = 2.2896 / 100000;
-const double shoulder_pos = -10;
-const double elbow_pos = -10;
+const double shoulder_pos = -20;
+const double elbow_pos = -20;
 	
 vector<double> force_data[4];
 vector<double> torque_data[2];
@@ -191,27 +191,27 @@ void FatigueTest::WriteDataToFile(int index) {
 
 void FatigueTest::UpdataDataArray() {
 	for (int i = 0; i < 499; i++) {
-		elbow_angle_error[i] = elbow_angle_error[i + 1];
-		shoulder_angle_error[i] = shoulder_angle_error[i + 1];
-		elbow_angle_curve[i] = elbow_angle_curve[i + 1];
-		shoulder_angle_curve[i] = shoulder_angle_curve[i + 1];
-		pull_force_curve1[i] = pull_force_curve1[i + 1];
-		pull_force_curve2[i] = pull_force_curve2[i + 1];
-		pull_force_curve3[i] = pull_force_curve3[i + 1];
-		pull_force_curve4[i] = pull_force_curve4[i + 1];
-		elbow_torque_curve[i] = elbow_torque_curve[i + 1];
-		shoulder_torque_curve[i] = shoulder_torque_curve[i + 1];
+		elbow_angle_error[i] = 0;
+		shoulder_angle_error[i] = 0;
+		elbow_angle_curve[i] = 0;
+		shoulder_angle_curve[i] = 0;
+		pull_force_curve1[i] = 0;
+		pull_force_curve2[i] = 0;
+		pull_force_curve3[i] = 0;
+		pull_force_curve4[i] = 0;
+		//elbow_torque_curve[i] = elbow_torque_curve[i + 1];
+		//shoulder_torque_curve[i] = shoulder_torque_curve[i + 1];
 	}
-	elbow_angle_error[499] = m_pControlCard->elbow_error_in_degree;
-	shoulder_angle_error[499] = m_pControlCard->shoulder_error_in_degree;
-	elbow_angle_curve[499] = m_pControlCard->elbow_position_in_degree;
-	shoulder_angle_curve[499] = m_pControlCard->shoulder_position_in_degree;
-	pull_force_curve1[499] = m_pDataAcquisition->pull_sensor_data[0];
-	pull_force_curve2[499] = m_pDataAcquisition->pull_sensor_data[1];
-	pull_force_curve3[499] = m_pDataAcquisition->pull_sensor_data[2];
-	pull_force_curve4[499] = m_pDataAcquisition->pull_sensor_data[3];
-	elbow_torque_curve[499] = m_pDataAcquisition->torque_data[0];
-	shoulder_torque_curve[499] = m_pDataAcquisition->torque_data[1];
+	//elbow_angle_error[499] = m_pControlCard->elbow_error_in_degree;
+	//shoulder_angle_error[499] = m_pControlCard->shoulder_error_in_degree;
+	//elbow_angle_curve[499] = m_pControlCard->elbow_position_in_degree;
+	//shoulder_angle_curve[499] = m_pControlCard->shoulder_position_in_degree;
+	//pull_force_curve1[499] = m_pDataAcquisition->pull_sensor_data[0];
+	//pull_force_curve2[499] = m_pDataAcquisition->pull_sensor_data[1];
+	//pull_force_curve3[499] = m_pDataAcquisition->pull_sensor_data[2];
+	//pull_force_curve4[499] = m_pDataAcquisition->pull_sensor_data[3];
+	//elbow_torque_curve[499] = m_pDataAcquisition->torque_data[0];
+	//shoulder_torque_curve[499] = m_pDataAcquisition->torque_data[1];
 }
 
 void FatigueTest::UpdataDataArray2(double sensordata[8]) {
@@ -490,11 +490,11 @@ void FatigueTest::PressureSensorAcquisit() {
 		elbow_suboffset[1] = 0;
 
 		//将传感器获取的数据滤波
-		//Trans2Filter2(shoulder_suboffset, shoulder_smooth);
-		//Trans2Filter2(elbow_suboffset, elbow_smooth);
+		Trans2Filter2(shoulder_suboffset, shoulder_smooth);
+		Trans2Filter2(elbow_suboffset, elbow_smooth);
 
 		//将传感器数据转成力矢量
-		SensorDataToForceVector(shoulder_suboffset, elbow_suboffset, force_vector);
+		SensorDataToForceVector(shoulder_smooth, elbow_smooth, force_vector);
 
 		MomentCalculation(force_vector);
 
@@ -677,6 +677,10 @@ void FatigueTest::SensorDataToForceVector(double shouldersensordata[4], double e
 	ForceVector[3] = elbowforce(1);
 }
 
+void FatigueTest::SetZero() {
+	UpdataDataArray();
+	PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
+}
 
 void FatigueTest::ExportForceData() {
 		ofstream dataFile1;

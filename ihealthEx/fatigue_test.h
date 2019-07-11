@@ -28,6 +28,7 @@ public:
 	void StopMove();
 	bool IsErrorHappened();
 	void AcquisiteData();
+	void SetZero();
 
 	//输出力到txt文件
 	void ExportForceData();

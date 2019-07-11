@@ -37,6 +37,8 @@ void CMainWnd::Notify(TNotifyUI &msg) {
 			m_pFatigueTest->PositionReset();
 		} else if (name.CompareNoCase(_T("btnStop")) == 0) {
 			m_pFatigueTest->StopMove();
+		}else if (name.CompareNoCase(_T("btnZero")) == 0) {
+			m_pFatigueTest->SetZero();
 		}
 	}
 }
