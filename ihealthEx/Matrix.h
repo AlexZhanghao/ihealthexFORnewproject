@@ -26,6 +26,8 @@ const double d5 = 0.174;
 const double r5 = 0.074;
 const double dy_2 = 0.087;
 const double dz_2 = 0.188;
+double sixdim_shoulder = 0.03;
+
 const double InitAngle[5] = {
 	0, 0, 0, 0, 15
 };
@@ -295,14 +297,14 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	MatrixXd Tf2_5(6, 6);
 
 	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
-	Vector3d pa1_3 = Vector3d(d3-shouler_installationsite_to_coordinate4, dy_2, 0);
+	Vector3d pa1_3 = Vector3d(d3-shouler_installationsite_to_coordinate4, dy_2+ sixdim_shoulder, 0);
 	Vector3d f2_5;
 	Vector3d n2_5;
 	Vector3d f1_3;
 	Vector3d n1_3;
 	Vector3d p5_4 = Vector3d(0, -d5, -r5);
 	Vector3d p4_3 = Vector3d(d3, 0, 0);
-	Vector3d p3_2 = Vector3d(0, dy_2, dz_2);
+	Vector3d p3_2 = Vector3d(0, dy_2, -dz_2);
 	Vector3d p2_1 = Vector3d(0, -d1, -d2);
 
 	VectorXd Co_tem(6);
@@ -346,12 +348,12 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	to_zero.setZero();
 	RF13 <<
 		1, 0, 0,
-		0, 0.8704, -0.4923,
-		0, 0.4923, 0.8704;
+		0, 0.8710, 0.4914,
+		0, -0.4914, 0.8665;
 	RF25 <<
-		0, 0.8649, -0.5020,
-		0, -0.5020, -0.8649,
-		1, 0, 0;
+		0, 0, 1,
+		-0.8649, -0.5020, 0,
+		0.5020, -0.8649, 0;
 	VectorToMatrix(pa2_5, P2_5);
 	VectorToMatrix(pa1_3, P1_3);
 	Tf2_5 <<

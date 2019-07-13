@@ -14,7 +14,6 @@ double Force_b = 1;
 double shoulder_offset ;
 double elbow_offset ;
 double moment1[8] { 0.0 };
-double sixdim_shoulder;
 
 const double shoulder_moment_variance = 4.3769 / 10000;
 const double elbow_moment_variance = 1.2576 / 10000;
@@ -22,6 +21,8 @@ const double shoulder_torque_variance = 1.4634 / 100000;
 const double elbow_torque_variance = 2.2896 / 100000;
 const double shoulder_pos = -20;
 const double elbow_pos = -20;
+const double sixdim = 0.015;
+double sixdim_shoulder_moment;
 	
 vector<double> force_data[4];
 vector<double> torque_data[2];
@@ -116,7 +117,10 @@ void FatigueTest::timerAcquisit() {
 
 		SixDimensionForceRotation(readings);
 
-		sixdim_shoulder = readings[5];
+		sixdim_shoulder_moment = readings[5];
+
+		UpdataDataArray2(readings);
+		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
 
 		Sleep(100);
 	}
@@ -124,10 +128,33 @@ void FatigueTest::timerAcquisit() {
 
 void FatigueTest::SixDimensionForceRotation(double sixdimensionforce[6]) {
 	VectorXd sixdim(6);
+	Vector3d sixdim_to_coordinate3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, sixdim_shoulder, 0);
+
 	for (int i = 0; i < 6; ++i) {
 		sixdim(i) = sixdimensionforce[i];			
 	}
 	
+	MatrixXd sixdim_transfer(6,6);
+	Matrix3d sixdim_rotation;
+	Matrix3d to_zero;
+	Matrix3d Sixdim_To_Coordinate3;
+
+	VectorToMatrix(sixdim_to_coordinate3, Sixdim_To_Coordinate3);
+	to_zero.setZero();
+
+	sixdim_rotation <<
+		1, 0, 0,
+		0, -1, 0,
+		0, 0, -1;
+
+	sixdim_transfer <<
+		sixdim_rotation, to_zero,
+		Sixdim_To_Coordinate3*sixdim_rotation, sixdim_rotation;
+
+	sixdim = sixdim_transfer*sixdim;
+	for (int i = 0; i < 6; ++i) {
+		sixdimensionforce[i] = sixdim(i);
+	}
 }
 
 void FatigueTest::StartMove() {
@@ -533,7 +560,7 @@ void FatigueTest::PressureSensorAcquisit() {
 
 		output_moment[0] = m_shoulder_moment;
 		output_moment[1] = m_elbow_moment;
-		output_moment[2] = shoulder_fusion;
+		output_moment[2] = sixdim_shoulder_moment;
 		output_moment[3] = elbow_fusion;
 		output_moment[4] = shoulder_moment;
 		output_moment[5] = elbow_moment;
@@ -544,8 +571,8 @@ void FatigueTest::PressureSensorAcquisit() {
 		//freopen("CONOUT$", "w", stdout);
 		//cout << "m_shoulder_moment:\n" << m_shoulder_moment << "\n" << "m_elbow_moment:\n" << m_elbow_moment << endl;
 		
-		UpdataDataArray2(output_moment);
-		PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
+		//UpdataDataArray2(output_moment);
+		//PostMessage(m_hWnd, CCHART_UPDATE, NULL, (LPARAM)this);
 
 		Sleep(100);
 	}

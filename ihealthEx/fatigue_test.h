@@ -58,7 +58,7 @@ public:
 public:
 	
 	double moments[6];
-	double shoulder_moment;
+	double shoulder_moment; 
 	double elbow_moment;
 	double shoulder_tau;
 	double elbow_tau;
@@ -107,7 +107,7 @@ private:
 
 	double m_shoulder_moment;
 	double m_elbow_moment;
-
+	
 
 
 	I32 option = 0x1000;//ptp运动模式控制
