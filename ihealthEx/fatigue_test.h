@@ -10,7 +10,8 @@
 
 class FatigueTest {
 public:
-	FatigueTest() = default;
+	FatigueTest();
+	~FatigueTest();
 
 	void Initial(HWND hWnd);
 	bool IsInitialed();
@@ -24,6 +25,8 @@ public:
 	void timerAcquisit();
 	//压力传感器
 	void PressureSensorAcquisit();
+	//力矩传感器
+	void TorqueAcquisit();
 	void PositionReset();
 	void StopMove();
 	bool IsErrorHappened();
@@ -36,6 +39,8 @@ public:
 	void ExportTorqueData();
 	//输出压力传感器计算得的力矩数据到txt
 	void ExportMomentData();
+	//输出六维力数据到txt
+	void ExportSixDimensionData();
 
 public:
 	HWND m_hWnd;
@@ -58,8 +63,8 @@ public:
 public:
 	
 	double moments[6];
-	double shoulder_moment; 
-	double elbow_moment;
+	double shoulder_torque; 
+	double elbow_torque;
 	double shoulder_tau;
 	double elbow_tau;
 	double shoulder_difference;
@@ -78,7 +83,7 @@ private:
 	//将转换后的值进行滤波-二阶巴特沃斯低通滤波器
 	void Trans2Filter(double TransData[6], double FiltedData[6]);
 	//用来对压力传感器数据进行滤波
-	void Trans2Filter2(double TransData[4], double FiltedData[4]);
+	void Trans2FilterForPressure(double TransData[4], double FiltedData[4]);
 	void FiltedVolt2Vel(double FiltedData[6]);
 	void MomentCalculation(double ForceVector[4]);
 	//将六维力转移到关节空间
@@ -92,7 +97,7 @@ private:
 	bool is_testing = false;
 	bool is_moving = false;
 
-	FTWrapper mFTWrapper;
+	FTWrapper *mFTWrapper;
 	DataAcquisition *m_pDataAcquisition = nullptr;
 	ControlCard *m_pControlCard = nullptr;
 	FileWriter *m_pFileWriter = nullptr;

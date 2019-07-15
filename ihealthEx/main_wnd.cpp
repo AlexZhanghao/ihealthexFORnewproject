@@ -10,7 +10,7 @@ LPCTSTR CMainWnd::GetWindowClassName() const {
 }
 
 CDuiString CMainWnd::GetSkinFile() {
-	return _T("main_wnd.xml");
+	return _T("../ihealthEX/main_wnd.xml");
 }
 
 void CMainWnd::InitWindow() {
@@ -39,6 +39,9 @@ void CMainWnd::Notify(TNotifyUI &msg) {
 			m_pFatigueTest->StopMove();
 		}else if (name.CompareNoCase(_T("btnZero")) == 0) {
 			m_pFatigueTest->SetZero();
+		} else if (name.CompareNoCase(_T("closebtn")) == 0) {
+			Close();
+			return;
 		}
 	}
 }

@@ -5,7 +5,8 @@ class DataAcquisition {
 public:
 	 DataAcquisition();
 	 ~DataAcquisition();
-	void AcquisiteTorqueData();
+	void AcquisiteTorqueData(double torquedata[2]);
+	void AcquisiteTorqueOffset();
 	void AcquisitePullSensorData();
 	void AcquisiteSixDemensionData(double output_buf[6]);
 	//这里尝试下把肩肘的数据采集放在一起，感觉这样性能可以提升
@@ -20,7 +21,7 @@ public:
 	double ElbowBackwardPull();
 
 public:
-	double torque_data[2] {0};
+	double torque_data[20] { 0 };
 	double pull_sensor_data[4] {0};
 
 

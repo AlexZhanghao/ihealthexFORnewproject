@@ -1,8 +1,10 @@
 #include "data_acquisition.h"
-
+#include<iostream>
 #include <Eigen/core>
+#include<Windows.h>
 
 using namespace Eigen;
+using namespace std;
 
 const double DataAcquisition::kRawToReal = 2.0;
 
@@ -25,18 +27,40 @@ DataAcquisition::~DataAcquisition() {
 
 }
 
-void DataAcquisition::AcquisiteTorqueData() {
+void DataAcquisition::AcquisiteTorqueData(double torquedata[2]) {
 	TaskHandle  taskHandle = 0;
-	int32       read = 0;
+	int32  read = 0;
 	int status = 0;
 
 	status = DAQmxCreateTask("TorqueDataTask", &taskHandle);
 	status = DAQmxCreateAIVoltageChan(taskHandle, torque_channel, "TorqueDataChannel", DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
 	status = DAQmxCfgSampClkTiming(taskHandle, "OnboardClock", 1000, DAQmx_Val_Rising, DAQmx_Val_ContSamps, 10);
 	status = DAQmxStartTask(taskHandle);
-	status = DAQmxReadAnalogF64(taskHandle, 1, 0.2, DAQmx_Val_GroupByScanNumber, torque_data, 2, &read, NULL);
+	status = DAQmxReadAnalogF64(taskHandle, 1, 0.2, DAQmx_Val_GroupByScanNumber, torquedata, 2, &read, NULL);
 	status = DAQmxStopTask(taskHandle);
 	status = DAQmxClearTask(taskHandle);
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//printf("shoulder:%lf     elbow:%lf\n", torquedata[1], torquedata[0]);
+}
+
+void DataAcquisition::AcquisiteTorqueOffset() {
+	TaskHandle  taskHandle = 0;
+	int32  read = 0;
+	int status = 0;
+
+	status = DAQmxCreateTask("TorqueDataTask", &taskHandle);
+	status = DAQmxCreateAIVoltageChan(taskHandle, torque_channel, "TorqueDataChannel", DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
+	status = DAQmxCfgSampClkTiming(taskHandle, "OnboardClock", 1000, DAQmx_Val_Rising, DAQmx_Val_ContSamps, 10);
+	status = DAQmxStartTask(taskHandle);
+	status = DAQmxReadAnalogF64(taskHandle, 10, 0.2, DAQmx_Val_GroupByChannel, torque_data, 20, &read, NULL);
+	status = DAQmxStopTask(taskHandle);
+	status = DAQmxClearTask(taskHandle);
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//printf("shoulder:%lf     elbow:%lf\n", torque_data[15], torque_data[5]);
 }
 
 void DataAcquisition::AcquisitePullSensorData() {
