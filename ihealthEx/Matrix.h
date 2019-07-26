@@ -297,7 +297,7 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	MatrixXd Tf2_5(6, 6);
 
 	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
-	Vector3d pa1_3 = Vector3d(d3-shouler_installationsite_to_coordinate4, dy_2+ sixdim_shoulder, 0);
+	Vector3d pa1_3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, 0, -dy_2);
 	Vector3d f2_5;
 	Vector3d n2_5;
 	Vector3d f1_3;
@@ -349,11 +349,15 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	RF13 <<
 		1, 0, 0,
 		0, 0.8710, 0.4914,
-		0, -0.4914, 0.8665;
+		0, -0.4914, 0.8710;
+	//RF25 <<
+	//	0, 0, 1,
+	//	-0.8649, -0.5020, 0,
+	//	0.5020, -0.8649, 0;
 	RF25 <<
-		0, 0, 1,
-		-0.8649, -0.5020, 0,
-		0.5020, -0.8649, 0;
+		0, 0.8649, 0.5020,
+		0, -0.5020, 0.8649,
+		1, 0, 0;
 	VectorToMatrix(pa2_5, P2_5);
 	VectorToMatrix(pa1_3, P1_3);
 	Tf2_5 <<
@@ -421,6 +425,30 @@ void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<D
 	moment[2] = n3_3(2);
 	moment[3] = n4_4(2);
 	moment[4] = n5_5(2);
+}
+
+//力矩的投影矩阵
+template<typename DerivedA, typename DerivedB>
+void AdmittanceControl(const MatrixBase<DerivedA>& torque, MatrixBase<DerivedB>& vel) {
+	MatrixXd meta(5, 2);
+	meta << 1, 0,
+		0.88, 0,
+		0, 1,
+		0, 1.3214,
+		0, 0.6607;
+
+	MatrixXd projection(2, 5);
+
+	pinv2(meta, projection);
+
+	vel = 0.9*projection * torque;
+}
+
+template<typename DerivedA, typename DerivedB>
+void pinv2(const MatrixBase<DerivedA>& A, MatrixBase<DerivedB>& B) {
+	MatrixXd A_temp(2, 2);
+	A_temp = A.transpose()*A;
+	B = (A_temp.inverse())*A.transpose();
 }
 
 //用来将叉乘转成点乘

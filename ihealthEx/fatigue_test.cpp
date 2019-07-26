@@ -14,14 +14,18 @@ double Force_b = 1;
 double shoulder_offset ;
 double elbow_offset ;
 double moment1[8] { 0.0 };
+double torque_vel[8];
 double pressure_data1;
+
+double Ud_Arm = 0;//力控模式算出手臂的命令速度
+double Ud_Shoul = 0;//力控模式算出肩部的命令速度
 
 const double shoulder_moment_variance = 4.3769 / 10000;
 const double elbow_moment_variance = 1.2576 / 10000;
 const double shoulder_torque_variance = 1.4634 / 100000;
 const double elbow_torque_variance = 2.2896 / 100000;
-const double shoulder_pos = -30;
-const double elbow_pos = -30;
+const double shoulder_pos = -15;
+const double elbow_pos = -15;
 const double sixdim = 0.015;
 double sixdim_elbow_moment;
 	
@@ -41,6 +45,9 @@ FatigueTest::FatigueTest() {
 	elbow_torque = 0;
 	shoulder_fusion = 0;
 	elbow_fusion = 0;
+	is_moving = false;
+	torque_collecting = false;
+	torque_moving = false;
 }
 
 FatigueTest::~FatigueTest() {
@@ -80,12 +87,13 @@ void FatigueTest::StartTest() {
 	mFTWrapper->setTUnit();
 
 	is_testing = true;
+	torque_collecting = true;
 
 	//主动运动线程
 	test_thread = (HANDLE)_beginthreadex(NULL, 0, TestThread, this, 0, NULL);
 	//ATI线程启动，这里要小心线程冲突
-	ATI_thread = (HANDLE)_beginthreadex(NULL, 0, ATIThread, this, 0, NULL);
-	////传感器开启线程
+	//ATI_thread = (HANDLE)_beginthreadex(NULL, 0, ATIThread, this, 0, NULL);
+	//传感器开启线程
 	acquisition_thread= (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
 }
 
@@ -96,6 +104,20 @@ void FatigueTest::StartAbsoulteMove() {
 	is_moving = true;
 
 	AbsoluteMove();
+}
+
+void FatigueTest::StartActiveMove() {
+	m_pControlCard->SetMotor(MOTOR_ON);
+	m_pControlCard->SetClutch(CLUTCH_ON);
+
+	is_testing = true;
+	is_moving = true;
+	torque_moving = true;
+
+	//主动运动线程
+	test_thread = (HANDLE)_beginthreadex(NULL, 0, TestThread, this, 0, NULL);
+	////传感器开启线程
+	//acquisition_thread = (HANDLE)_beginthreadex(NULL, 0, AcquisitionThread, this, 0, NULL);
 }
 
 void FatigueTest::AbsoluteMove() {
@@ -110,8 +132,13 @@ void FatigueTest::AbsoluteMove() {
 	//APS_absolute_move(Axis[1], elbow_pos / VEL_TO_PALSE, 3 / VEL_TO_PALSE);
 }
 
+void FatigueTest::ActMove() {
+	m_pControlCard->VelocityMove(SHOULDER_AXIS_ID, Ud_Shoul);
+	m_pControlCard->VelocityMove(ELBOW_AXIS_ID, Ud_Arm);
+}
+
 void FatigueTest::timerAcquisit() {
-	if (!IsInitialed()) {
+	if (!IsInitialed()) { 
 		return;
 	}
 
@@ -218,9 +245,12 @@ void FatigueTest::StartMove() {
 void FatigueTest::StopMove() {
 	in_test_move = false;
 	is_testing = false;
+	is_moving = false;
+	torque_collecting = false;
+	torque_moving = false;
 	//这里不放开离合的原因是为了防止中间位置松开离合导致手臂迅速下坠
 	m_pControlCard->SetMotor(MOTOR_OFF);
-
+	ExitTorqueThread();
 }
 
 void FatigueTest::PositionReset() {
@@ -323,8 +353,16 @@ unsigned int __stdcall AcquisitionThread(PVOID pParam) {
 		return 1;
 	}
 
-	//力矩传感器
-	tTest->TorqueAcquisit();
+	//力矩传感器采集
+	if (tTest->torque_collecting == true) {
+		tTest->TorqueAcquisit();
+	}
+
+	//力矩传感器运动
+	//if (tTest->torque_moving == true) {
+	//	tTest->TorqueMove();
+	//}
+
 }
 
 void FatigueTest::Raw2Trans(double RAWData[6], double DistData[6]) {
@@ -459,6 +497,9 @@ void FatigueTest::TorqueAcquisit() {
 	if (!IsInitialed()) {
 		return;
 	}
+
+	torque_collecting = false;
+
 	elbow_offset = 0;
 	shoulder_offset = 0;
 	double shouleder_torque_sum_data = 0;
@@ -477,6 +518,10 @@ void FatigueTest::TorqueAcquisit() {
 	elbow_offset = elbow_torque_sum_data / 5;
 	shoulder_offset = shouleder_torque_sum_data / 5;
 
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//printf("elbow_offset:%lf  shoulder_offset:%lf\n", elbow_offset, shoulder_offset);
+
 	m_pDataAcquisition->StopTask();
 	m_pDataAcquisition->StartTask();
 
@@ -490,6 +535,81 @@ void FatigueTest::TorqueAcquisit() {
 		//printf("elbow_offset:%lf    shoulder_offset:%lf  \n  shoulder_torque:%lf    elbow_torque:%lf  \n", elbow_offset, shoulder_offset, 2 * m_pDataAcquisition->torque_data[1], 2 * m_pDataAcquisition->torque_data[0]);
 
 	}
+}
+
+void FatigueTest::TorqueMove() {
+
+	torque_moving = false;
+
+	double torque_subdata[2]{ 0 };
+	double torque_alldata[5]{ 0 };
+
+	Vector2d vel;
+	VectorXd torque(5);
+
+	while (is_moving == true) {
+		torque_subdata[0] = shoulder_torque;
+		torque_subdata[1] = elbow_torque;
+
+		ActiveTorqueToAllTorque(torque_subdata, torque_alldata);
+
+		for (int i = 0; i < 5; ++i) {
+			torque(i) = torque_alldata[i];
+		}
+
+		AdmittanceControl(torque, vel);
+
+		//Ud_Shoul = vel(0);
+		//Ud_Arm = vel(1);
+		Ud_Shoul = 1.5*shoulder_torque;
+		Ud_Arm = 2*elbow_torque;
+
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+		//printf("Ud_Shoul:%lf  Ud_Arm:%lf\n", Ud_Shoul, Ud_Arm);
+
+		for (int i = 0; i < 5; ++i) {
+			torque_vel[i] = torque_alldata[i];
+		}
+		torque_vel[6] = Ud_Shoul;
+		torque_vel[7] = Ud_Arm;
+
+		if ((Ud_Arm > -0.5) && (Ud_Arm < 0.5)) {
+			Ud_Arm = 0;
+		}
+		if ((Ud_Shoul > -0.5) && (Ud_Shoul < 0.5)) {
+			Ud_Shoul = 0;
+		}
+		if (Ud_Arm > 3) {
+			Ud_Arm = 3;
+		}
+		else if (Ud_Arm < -3) {
+			Ud_Arm = -3;
+		}
+		if (Ud_Shoul > 3) {
+			Ud_Shoul = 3;
+		}
+		else if (Ud_Shoul < -3) {
+			Ud_Shoul = -3;
+		}
+
+		ActMove();
+	}
+}
+
+void FatigueTest::ExitTorqueThread() {
+	if (acquisition_thread != 0) {
+		::WaitForSingleObject(acquisition_thread, INFINITE);
+		acquisition_thread = 0;
+	}
+}
+
+void FatigueTest::ActiveTorqueToAllTorque(double torque[2], double alltorque[5]) {
+	alltorque[0] = torque[0];
+	alltorque[1] = torque[0] * 3 / 2;
+	alltorque[2] = torque[1];
+	alltorque[3] = torque[1] * 56 / 50;
+	alltorque[4] = torque[1] * 74 / 50;
 }
 
 void FatigueTest::PressureSensorAcquisit() {
@@ -506,6 +626,7 @@ void FatigueTest::PressureSensorAcquisit() {
 	double shoulder_smooth[4] = { 0 };
 	double elbow_smooth[4] = { 0 };
 	double force_vector[4] = { 0 };
+	double vel[2]{ 0 };
 	
 	//将肩肘部合在一起
 	double two_arm_sum[8] { 0.0 };
@@ -534,9 +655,13 @@ void FatigueTest::PressureSensorAcquisit() {
 	while (is_testing==true){
 		m_pDataAcquisition->AcquisiteTensionData(pressure_data);
 
+
 		for (int i = 0; i < 8; ++i) {
 			two_arm_suboffset[i] = pressure_data[i] - two_arm_offset[i];
 		}
+
+		//因第4通道的值相比其它通道明显要小很多，所以在这里将其放大，参考通道3，放大5倍
+		two_arm_suboffset[3] = 5 * two_arm_suboffset[3];
 
 		//因为滤波会用到之前的数据，所以在这里还是得把数据分开，同时把单位从电压转换成力
 		for (int i = 0; i < 4; ++i) {
@@ -546,18 +671,43 @@ void FatigueTest::PressureSensorAcquisit() {
 			elbow_suboffset[j] = 10 * two_arm_suboffset[j + 4];
 		}
 
-		//因为肘部第二位置没有传感器，所以这里把它强制置零
-		elbow_suboffset[1] = 0;
-
 		//将传感器获取的数据滤波
 		Trans2FilterForPressure(shoulder_suboffset, shoulder_smooth);
 		Trans2FilterForPressure(elbow_suboffset, elbow_smooth);
 
 		//将传感器数据转成力矢量
-		SensorDataToForceVector(shoulder_smooth, elbow_smooth, force_vector);
+		SensorDataToForceVector(shoulder_suboffset, elbow_suboffset, force_vector);
 
 		//将压力转化成关节力矩
-		MomentCalculation(force_vector);
+		MomentCalculation(force_vector,vel);
+
+		Ud_Shoul = 3*vel[0];
+		Ud_Arm = 3.5 * vel[1];
+
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+		//printf("Ud_Shoul:%lf  Ud_Arm:%lf\n", Ud_Shoul, Ud_Arm);
+
+		if ((Ud_Arm > -0.5) && (Ud_Arm < 0.5)) {
+			Ud_Arm = 0;
+		}
+		if ((Ud_Shoul > -0.5) && (Ud_Shoul < 0.5)) {
+			Ud_Shoul = 0;
+		}
+		if (Ud_Arm > 3) {
+			Ud_Arm = 3;
+		}
+		else if (Ud_Arm < -3) {
+			Ud_Arm = -3;
+		}
+		if (Ud_Shoul > 3) {
+			Ud_Shoul = 3;
+		}
+		else if (Ud_Shoul < -3) {
+			Ud_Shoul = -3;
+		}
+
+		//ActMove();
 
 		//AllocConsole();
 		//freopen("CONOUT$", "w", stdout);
@@ -577,15 +727,19 @@ void FatigueTest::PressureSensorAcquisit() {
 		output_moment[3] = sixdim_elbow_moment;
 		output_moment[4] = shoulder_torque;
 		output_moment[5] = elbow_torque;
+		output_moment[6] = Ud_Shoul;
+		output_moment[7] = Ud_Arm;
 
-		//采集力矩传感器数据
-		torque_collection[0].push_back(shoulder_torque);
-		torque_collection[1].push_back(elbow_torque);
-		//采集六维力数据
-		sixdimension_collection.push_back(sixdim_elbow_moment);
-		//采集压力传感器计算出的数据
-		moment_collection[0].push_back(m_shoulder_moment);
-		moment_collection[1].push_back(m_elbow_moment);
+
+
+		////采集力矩传感器数据
+		//torque_collection[0].push_back(shoulder_torque);
+		//torque_collection[1].push_back(elbow_torque);
+		////采集六维力数据
+		//sixdimension_collection.push_back(sixdim_elbow_moment);
+		////采集压力传感器计算出的数据
+		//moment_collection[0].push_back(m_shoulder_moment);
+		//moment_collection[1].push_back(m_elbow_moment);
 
 		//AllocConsole();
 		//freopen("CONOUT$", "w", stdout);
@@ -596,11 +750,12 @@ void FatigueTest::PressureSensorAcquisit() {
 
 		Sleep(100);
 	}
-	ExportMomentData();
-	ExportTorqueData();
-	ExportSixDimensionData();
+	//ExportMomentData();
+	//ExportTorqueData();
+	//ExportSixDimensionData();
 	//ExportForceData();
 }
+
 
 void FatigueTest::Trans2FilterForPressure(double TransData[4], double FiltedData[4]) {
 	double Wc = 5;
@@ -643,13 +798,14 @@ void FatigueTest::Trans2FilterForPressure(double TransData[4], double FiltedData
 	}
 }
 
-void FatigueTest::MomentCalculation(double ForceVector[4]) {
-	MatrixXd vel(2, 1);
+void FatigueTest::MomentCalculation(double ForceVector[4],double vel[2]) {
+	MatrixXd m_vel(2, 1);
 	MatrixXd pos(2, 1);
 
 	VectorXd shoulder_force_moment_vector(6);
 	VectorXd elbow_force_moment_vector(6);
 	VectorXd six_dimensional_force_simulation(6);
+	VectorXd v_moment(5);
 
 	double angle[2];
 	double moment[5];
@@ -681,41 +837,53 @@ void FatigueTest::MomentCalculation(double ForceVector[4]) {
 	//moment1[6] = moment[0] / moment[2];
 	//moment1[7] = moment[1] / moment[2];
 
-	if (moment1[6] > 5 || moment1[6] < -5) {
-		moment1[6] = 0;
-	}
-	if (moment1[7] > 5 || moment1[7] < -5) {
-		moment1[7] = 0;
+	//if (moment1[6] > 5 || moment1[6] < -5) {
+	//	moment1[6] = 0;
+	//}
+	//if (moment1[7] > 5 || moment1[7] < -5) {
+	//	moment1[7] = 0;
+	//}
+
+	for (int i = 0; i < 5; ++i) {
+		v_moment(i) = moment[i];
 	}
 
 	m_shoulder_moment = moment[0];
 	m_elbow_moment = moment[2];
 
+	AdmittanceControl(v_moment, m_vel);
+
+	vel[0] = m_vel(0);
+	vel[1] = m_vel(1);
+
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
 	//cout << "m_shoulder_moment:\n" << m_shoulder_moment << "\n" << "m_elbow_moment:\n" << m_elbow_moment << endl;
+	//cout << "shoulderX:" << ForceVector[0] << "		" << "shoudlerY:" << ForceVector[1] << endl;
+	//cout << "elbowX:" << ForceVector[2] << "		" << "elbowY:" << ForceVector[3] << endl;
 }
 
 void FatigueTest::SensorDataToForceVector(double shouldersensordata[4], double elbowsensordata[4], double ForceVector[4]) {
-	double shoulderdataX = shouldersensordata[0] - shouldersensordata[1];
-	double shoulderdataY = shouldersensordata[2] - shouldersensordata[3];
-	double elbowdataX = elbowsensordata[0] - elbowsensordata[1];
-	double elbowdataY = elbowsensordata[2] - elbowsensordata[3];
+	double shoulderdataY = shouldersensordata[0] - shouldersensordata[1];
+	double shoulderdataZ = shouldersensordata[2] - shouldersensordata[3];
+	double elbowdataY = elbowsensordata[0] - elbowsensordata[1];
+	//这里因为8在Y+,7在Y-,所以用8-7表示正向
+	double elbowdataZ = elbowsensordata[3] - elbowsensordata[2];
 
 	//合成的力矢量
 	//Vector2d shoulderforce;
 	//Vector2d elbowforce;
-	//shoulderforce << shoulderdataX, shoulderdataY;
-	//elbowforce << elbowdataX, elbowdataY;
+	//shoulderforce << shoulderdataY, shoulderdataZ;
+	//elbowforce << elbowdataY, elbowdataZ;
 
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
 	//cout <<"shoulderforce:\n"<< shoulderforce << "\n" << "elbowforce:\n"<<elbowforce << endl;
 
-	ForceVector[0] = shoulderdataX;
-	ForceVector[1] = shoulderdataY;
-	ForceVector[2] = elbowdataX;
-	ForceVector[3] = elbowdataY;
+	ForceVector[0] = shoulderdataY;
+	ForceVector[1] = shoulderdataZ;
+	ForceVector[2] = elbowdataY;
+	ForceVector[3] = elbowdataZ;
 }
 
 void FatigueTest::SetZero() {

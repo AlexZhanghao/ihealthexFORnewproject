@@ -14,7 +14,7 @@ using namespace std;
 #define ShoulderTorqueLimit 100.0
 #define ElbowTorqueLimit 100.0
 
-#define PullLimit 4.0 /*实际电压需要除以2*/
+#define PullLimit 8.0 /*实际电压需要除以2*/
 
 double rawTorqueData[5]={0};
 double raw_pull_data[20] = { 0 };

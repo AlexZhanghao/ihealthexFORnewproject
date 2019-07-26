@@ -4,7 +4,8 @@
     	<HorizontalLayout bkcolor="#FFFFFFFF" height="32">
 				<Button name="btnInitial" text="初始化" width="100" />
 				<Button name="btnTest" text="采集" width="100"/>
-				<Button name="btnMoving" text="正转" width="100"/>			
+			    <Button name="btnActive" text="主动" width="100"/>
+				<Button name="btnMoving" text="正转" width="100"/>
 				<Button name="btnNegative" text="复位" width="100"/>
 				<Button name="btnStop" text="停止" width="100" />			
                 <Button name="btnZero" text="置零" width="100" />

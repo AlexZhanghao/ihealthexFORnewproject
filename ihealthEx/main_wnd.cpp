@@ -33,6 +33,8 @@ void CMainWnd::Notify(TNotifyUI &msg) {
 			m_pFatigueTest->StartTest();
 		}else if (name.CompareNoCase(_T("btnMoving")) == 0) {
 			m_pFatigueTest->StartAbsoulteMove();
+		}else if (name.CompareNoCase(_T("btnActive")) == 0) {
+			m_pFatigueTest->StartActiveMove();
 		}else if (name.CompareNoCase(_T("btnNegative")) == 0) {
 			m_pFatigueTest->PositionReset();
 		} else if (name.CompareNoCase(_T("btnStop")) == 0) {
@@ -118,8 +120,8 @@ CControlUI *CMainWnd::InitializeChart() {
 	chart->SetTitle(_T("肘部tau"), 3);
 	chart->SetTitle(_T("肩部差值"), 4);
 	chart->SetTitle(_T("肘部差值"), 5);
-	chart->SetTitle(_T("肘部反向拉力"), 6);
-	chart->SetTitle(_T("肩部反向拉力"), 7);
+	chart->SetTitle(_T("肩部速度"), 6);
+	chart->SetTitle(_T("肘部速度"), 7);
 	//chart->SetTitle(_T("肘部力矩"), 8);
 	//chart->SetTitle(_T("肩部力矩"), 9);
 

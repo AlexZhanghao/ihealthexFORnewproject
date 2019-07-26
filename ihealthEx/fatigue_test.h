@@ -18,20 +18,28 @@ public:
 
 	void StartTest();
 	void StartAbsoulteMove();
+	void StartActiveMove();
 	void AbsoluteMove();
+	void ActMove();
 	//国产六维力
 	void StartMove();
 	//ATI
 	void timerAcquisit();
-	//压力传感器
+	//压力传感器采集
 	void PressureSensorAcquisit();
-	//力矩传感器
+	//力矩传感器采集
 	void TorqueAcquisit();
+	//力矩传感器运动
+	void TorqueMove();
 	void PositionReset();
 	void StopMove();
 	bool IsErrorHappened();
 	void AcquisiteData();
 	void SetZero();
+	//将力矩由主动关节换算到所有关节
+	void ActiveTorqueToAllTorque(double torque[2], double alltorque[5]);
+	//等待线程停止
+	void ExitTorqueThread();
 
 	//输出力到txt文件
 	void ExportForceData();
@@ -57,6 +65,8 @@ public:
 	double x_axis[500] { 0 };
 
 	bool m_stop = true;
+	bool torque_collecting;
+	bool torque_moving;
 
 	double two_arm_offset[8];
 
@@ -85,7 +95,7 @@ private:
 	//用来对压力传感器数据进行滤波
 	void Trans2FilterForPressure(double TransData[4], double FiltedData[4]);
 	void FiltedVolt2Vel(double FiltedData[6]);
-	void MomentCalculation(double ForceVector[4]);
+	void MomentCalculation(double ForceVector[4],double vel[2]);
 	//将六维力转移到关节空间
 	void SixDimensionForceRotation(double sixdimensionforce[6]);
 	//将传感器的数据处理成两个二维矢量，由于矢量只在两个方向上有作用，故需输出4个数据。这里要先知道传感器的安装位置
