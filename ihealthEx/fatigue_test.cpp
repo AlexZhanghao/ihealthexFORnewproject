@@ -681,6 +681,10 @@ void FatigueTest::PressureSensorAcquisit() {
 		//将压力转化成关节力矩
 		MomentCalculation(force_vector,vel);
 
+		//AllocConsole();
+		//freopen("CONOUT$", "w", stdout);
+		//printf("force_vector1:%lf    force_vector2:%lf    force_vector3:%lf	   force_vector4:%lf   \n", force_vector[0], force_vector[1], force_vector[2], force_vector[3]);
+
 		Ud_Shoul = 3*vel[0];
 		Ud_Arm = 3.5 * vel[1];
 
@@ -688,12 +692,12 @@ void FatigueTest::PressureSensorAcquisit() {
 		//freopen("CONOUT$", "w", stdout);
 		//printf("Ud_Shoul:%lf  Ud_Arm:%lf\n", Ud_Shoul, Ud_Arm);
 
-		if ((Ud_Arm > -0.5) && (Ud_Arm < 0.5)) {
-			Ud_Arm = 0;
-		}
-		if ((Ud_Shoul > -0.5) && (Ud_Shoul < 0.5)) {
-			Ud_Shoul = 0;
-		}
+		//if ((Ud_Arm > -0.5) && (Ud_Arm < 0.5)) {
+		//	Ud_Arm = 0;
+		//}
+		//if ((Ud_Shoul > -0.5) && (Ud_Shoul < 0.5)) {
+		//	Ud_Shoul = 0;
+		//}
 		if (Ud_Arm > 3) {
 			Ud_Arm = 3;
 		}
@@ -707,7 +711,7 @@ void FatigueTest::PressureSensorAcquisit() {
 			Ud_Shoul = -3;
 		}
 
-		//ActMove();
+		ActMove();
 
 		//AllocConsole();
 		//freopen("CONOUT$", "w", stdout);
@@ -855,6 +859,10 @@ void FatigueTest::MomentCalculation(double ForceVector[4],double vel[2]) {
 
 	vel[0] = m_vel(0);
 	vel[1] = m_vel(1);
+
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//printf("moment1:%lf      moment2:%lf      moment3:%lf      moment4:%lf      moment5:%lf  \n", moment[0], moment[1], moment[2], moment[3], moment[4]);
 
 	//AllocConsole();
 	//freopen("CONOUT$", "w", stdout);
