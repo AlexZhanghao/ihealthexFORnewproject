@@ -285,32 +285,32 @@ void boundaryDetection::check() {
 	//}
 
 	// 拉力保护
-	m_DataAcquisition.AcquisitePullSensorData();
-	double abs_shoulder_forward_pull = fabs(m_DataAcquisition.ShoulderForwardPull());
-	double abs_shoulder_backward_pull = fabs(m_DataAcquisition.ShoulderBackwardPull());
-	double abs_elbow_forward_pull = fabs(m_DataAcquisition.ElbowForwardPull());
-	double abs_elbow_backward_pull = fabs(m_DataAcquisition.ElbowBackwardPull());
-	//printf("shoulder:%lf    %lf \n elbow:%lf     %lf\n", abs_shoulder_forward_pull, abs_shoulder_backward_pull,abs_elbow_forward_pull,abs_elbow_backward_pull);
-	if (abs_shoulder_forward_pull > PullLimit || abs_shoulder_backward_pull > PullLimit ||
-		abs_elbow_forward_pull > PullLimit || abs_elbow_backward_pull > PullLimit) {
-		// 同样需要先把动作暂停下来
-		::PostMessage(m_hWnd, PullForceError, NULL, NULL);
-		wstring msg(_T("钢丝绳拉力超出许可范围，请检查异常并联系制造商,F1="));
-		msg += to_wstring(abs_shoulder_forward_pull);
-		msg += (_T(", F2="));
-		msg += to_wstring(abs_shoulder_backward_pull);
-		msg += (_T(", F3="));
-		msg += to_wstring(abs_elbow_forward_pull);
-		msg += (_T(", F4="));
-		msg += to_wstring(abs_elbow_backward_pull);
-		msg += (_T("。"));
-		// 然后显示一个MessageBox去提示复位
-		hHook = SetWindowsHookEx(WH_CBT, (HOOKPROC)CBTHookProc, NULL, GetCurrentThreadId());
-		int ret = ::MessageBox(m_hWnd, msg.c_str(), _T("拉力保护"), MB_OK | MB_ICONEXCLAMATION);
-		if (ret == IDOK) {
-			m_ControlCard.PositionReset();
-		}
-	}
+	//m_DataAcquisition.AcquisitePullSensorData();
+	//double abs_shoulder_forward_pull = fabs(m_DataAcquisition.ShoulderForwardPull());
+	//double abs_shoulder_backward_pull = fabs(m_DataAcquisition.ShoulderBackwardPull());
+	//double abs_elbow_forward_pull = fabs(m_DataAcquisition.ElbowForwardPull());
+	//double abs_elbow_backward_pull = fabs(m_DataAcquisition.ElbowBackwardPull());
+	////printf("shoulder:%lf    %lf \n elbow:%lf     %lf\n", abs_shoulder_forward_pull, abs_shoulder_backward_pull,abs_elbow_forward_pull,abs_elbow_backward_pull);
+	//if (abs_shoulder_forward_pull > PullLimit || abs_shoulder_backward_pull > PullLimit ||
+	//	abs_elbow_forward_pull > PullLimit || abs_elbow_backward_pull > PullLimit) {
+	//	// 同样需要先把动作暂停下来
+	//	::PostMessage(m_hWnd, PullForceError, NULL, NULL);
+	//	wstring msg(_T("钢丝绳拉力超出许可范围，请检查异常并联系制造商,F1="));
+	//	msg += to_wstring(abs_shoulder_forward_pull);
+	//	msg += (_T(", F2="));
+	//	msg += to_wstring(abs_shoulder_backward_pull);
+	//	msg += (_T(", F3="));
+	//	msg += to_wstring(abs_elbow_forward_pull);
+	//	msg += (_T(", F4="));
+	//	msg += to_wstring(abs_elbow_backward_pull);
+	//	msg += (_T("。"));
+	//	// 然后显示一个MessageBox去提示复位
+	//	hHook = SetWindowsHookEx(WH_CBT, (HOOKPROC)CBTHookProc, NULL, GetCurrentThreadId());
+	//	int ret = ::MessageBox(m_hWnd, msg.c_str(), _T("拉力保护"), MB_OK | MB_ICONEXCLAMATION);
+	//	if (ret == IDOK) {
+	//		m_ControlCard.PositionReset();
+	//	}
+	//}
 }
 
 

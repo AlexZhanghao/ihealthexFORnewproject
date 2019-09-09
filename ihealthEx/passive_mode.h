@@ -34,7 +34,7 @@ public:
 	PassiveMode();
 	~PassiveMode() = default;
 	void PositionReset();
-	void StartMove(const PassiveActionParam &param);
+	void SixdimForceAcquisit(const PassiveActionParam &param);
 	void StopMove();
 private:
 	std::shared_ptr<ControlCard> p_control_card_;

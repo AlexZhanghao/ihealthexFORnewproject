@@ -26,13 +26,11 @@ const double d5 = 0.174;
 const double r5 = 0.074;
 const double dy_2 = 0.087;
 const double dz_2 = 0.188;
-double sixdim_shoulder = 0.03;
+//double sixdim_shoulder = 0.03;
 
 const double InitAngle[5] = {
 	0, 0, 0, 0, 15
 };
-
-MatrixXd jacobian(6, 5);
 
 //#define LEFT_ARM 1
 #ifdef LEFT_ARM
@@ -149,11 +147,10 @@ void damping_control(const MatrixBase<DerivedA>& Fh, MatrixBase<DerivedB>& U, Ma
 	VectorXd theta_PI(5);
 
 	MatrixXd con(2, 2);
-
+	MatrixXd jacobian(6, 5);
 
 	VectorXd d(5);
 	VectorXd diag(6);
-
 
 	MatrixXd p_X(2, 6);
 	MatrixXd Co(2, 2);
@@ -236,46 +233,46 @@ _Matrix_Type_ pseudoInverse(const _Matrix_Type_ &a, double epsilon =
 	return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
 
-template<typename DerivedA, typename DerivedB, typename DerivedC>
-void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>& six_sensor_data,  MatrixBase<DerivedC>& moment) {
-	Matrix3d axisdirection_hat[4];
-	Matrix3d spinor_hat[4];
-	Matrix3d so3[4] ;
-	Matrix3d SO3[4];
-
-	
-	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
-	Vector3d pa1_3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, 0, 0);
-	Vector3d f2_5;
-	Vector3d f1_3;
-	Vector3d p5_4 = Vector3d(0, -d5, -r5);
-	Vector3d p4_3 = Vector3d(d3, 0, 0);
-	Vector3d p3_2 = Vector3d(0, dy_2, dz_2);
-	Vector3d p2_1 = Vector3d(0, -d1, -d2);
-
-	
-	VectorXd Co_tem(6);
-	VectorXd joint_angle(5);
-
-	//Co_tem << 20, 20, 20, 1, 1, 1;//六维力的放大系数
-	//Co = Co_tem.asDiagonal();
-
-	ActiveJointsAngleToAllJointsAngle(motorangle, joint_angle);
-
-		////罗德里格斯公式,这里只计算了轴2到轴5
-		//for (int i = 0; i < 4; ++i) {
-		//	XmultiToDotmulti(AxisDirection[i + 1], axisdirection_hat[i])
-		//	so3[i] = axisdirection_hat[i] * (M_PI / 180)*	joint_angle[i + 1];
-		//	SO3[i] = so3[i].exp();
-		//}
-
-	MatrixXd jacobian1(6, 5);
-	jacobian1 = jacobian;
-
-	jacobian1 = jacobian.transpose();
-
-	moment = jacobian1 * six_sensor_data;
-}
+//template<typename DerivedA, typename DerivedB, typename DerivedC>
+//void TauExport(const MatrixBase<DerivedA>& motorangle,const MatrixBase<DerivedB>& six_sensor_data,  MatrixBase<DerivedC>& moment) {
+//	Matrix3d axisdirection_hat[4];
+//	Matrix3d spinor_hat[4];
+//	Matrix3d so3[4] ;
+//	Matrix3d SO3[4];
+//
+//	
+//	Vector3d pa2_5 = Vector3d(0, 0, d4 - elbow_installationsite_to_coordinate5 - d5);
+//	Vector3d pa1_3 = Vector3d(d3 - shouler_installationsite_to_coordinate4, 0, 0);
+//	Vector3d f2_5;
+//	Vector3d f1_3;
+//	Vector3d p5_4 = Vector3d(0, -d5, -r5);
+//	Vector3d p4_3 = Vector3d(d3, 0, 0);
+//	Vector3d p3_2 = Vector3d(0, dy_2, dz_2);
+//	Vector3d p2_1 = Vector3d(0, -d1, -d2);
+//
+//	
+//	VectorXd Co_tem(6);
+//	VectorXd joint_angle(5);
+//
+//	//Co_tem << 20, 20, 20, 1, 1, 1;//六维力的放大系数
+//	//Co = Co_tem.asDiagonal();
+//
+//	ActiveJointsAngleToAllJointsAngle(motorangle, joint_angle);
+//
+//		////罗德里格斯公式,这里只计算了轴2到轴5
+//		//for (int i = 0; i < 4; ++i) {
+//		//	XmultiToDotmulti(AxisDirection[i + 1], axisdirection_hat[i])
+//		//	so3[i] = axisdirection_hat[i] * (M_PI / 180)*	joint_angle[i + 1];
+//		//	SO3[i] = so3[i].exp();
+//		//}
+//
+//	MatrixXd jacobian1(6, 5);
+//	jacobian1 = jacobian;
+//
+//	jacobian1 = jacobian.transpose();
+//
+//	moment = jacobian1 * six_sensor_data;
+//}
 
 template<typename DerivedA, typename DerivedB>
 void MomentBalance(const MatrixBase<DerivedA>& shoulderforcevector, MatrixBase<DerivedB>& elbowforcevector, double motorangle[2], double moment[5]) {

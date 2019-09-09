@@ -1,13 +1,6 @@
-/Bin/*
-/Debug/*
-/Lib/*
-/Release/*
-!/Release/main_wnd.xml
-/Temp/*
-
-*.VC.db
-*.suo
-*.sdf
-*.ipch
 .vs
 x64
+Debug
+Temp
+ihealthEx/x64
+*.db

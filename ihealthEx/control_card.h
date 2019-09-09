@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "APS168.h"
 #include "ErrorCodeDef.h"
 #include "APS_define.h"
@@ -19,7 +19,7 @@
 #define SHOULDER_AXIS_ID (0)
 #define ELBOW_AXIS_ID (1)
 
-#define VEL_TO_PALSE (0.009) //ÎªÁË½«ËÙ¶È×ª»¯ÎªÂö³å
+#define VEL_TO_PALSE (0.009) //ä¸ºäº†å°†é€Ÿåº¦è½¬åŒ–ä¸ºè„‰å†²
 #define MOVE_VELOCITY (4)
 
 class ControlCard {

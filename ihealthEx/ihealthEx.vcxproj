@@ -76,8 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\ihealthexFORnewproject\eigen\eigen3_3_4;D:\ihealthexFORnewproject\ATI\ATIDAQ;D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\DuiLib;D:\eigen\eigen3_3_4;D:\ihealth\ihealth\NI\include;D:\ihealth\ihealth\APS\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\ihealthexFORnewproject\Library;D:\ihealth\ihealth\NI\lib;D:\ihealth\ihealth\APS\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\ihealthexFORnewproject\NI\include;D:\ihealthexFORnewproject\eigen\eigen3_3_4;D:\ihealthexFORnewproject\ATI\ATIDAQ;D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\DuiLib;D:\ihealthexFORnewproject\APS\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\ihealthexFORnewproject\Lib;D:\ihealthexFORnewproject\Library;D:\ihealthexFORnewproject\NI\lib;D:\ihealthexFORnewproject\APS\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -168,6 +168,7 @@
     <ClCompile Include="..\ATI\ATIDAQ\xmlparse.c" />
     <ClCompile Include="..\ATI\ATIDAQ\xmlrole.c" />
     <ClCompile Include="..\ATI\ATIDAQ\xmltok.c" />
+    <ClCompile Include="activemove_acquisition.cpp" />
     <ClCompile Include="boundarydetection.cpp" />
     <ClCompile Include="control_card.cpp" />
     <ClCompile Include="data_acquisition.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="..\ATI\ATIDAQ\xmlparse.h" />
     <ClInclude Include="..\ATI\ATIDAQ\xmlrole.h" />
     <ClInclude Include="..\ATI\ATIDAQ\xmltok.h" />
+    <ClInclude Include="activemove_acquisition.h" />
     <ClInclude Include="boundarydetection.h" />
     <ClInclude Include="control_card.h" />
     <ClInclude Include="data_acquisition.h" />

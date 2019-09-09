@@ -96,6 +96,9 @@
     <ClCompile Include="boundarydetection.cpp">
       <Filter>源文件\Robot</Filter>
     </ClCompile>
+    <ClCompile Include="activemove_acquisition.cpp">
+      <Filter>源文件\Robot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control_card.h">
@@ -150,6 +153,9 @@
       <Filter>头文件\Robot</Filter>
     </ClInclude>
     <ClInclude Include="boundarydetection.h">
+      <Filter>头文件\Robot</Filter>
+    </ClInclude>
+    <ClInclude Include="activemove_acquisition.h">
       <Filter>头文件\Robot</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,7 +9,7 @@ PassiveMode::PassiveMode() : p_control_card_(std::make_shared<ControlCard>()){
 	p_control_card_->Initial();
 }
 
-void PassiveMode::StartMove(const PassiveActionParam &param) {
+void PassiveMode::SixdimForceAcquisit(const PassiveActionParam &param) {
 	double step_count = 1;
 	PassivePosition position;
 	p_control_card_->SetMotor(MOTOR_ON);

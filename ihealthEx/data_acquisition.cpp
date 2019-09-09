@@ -7,20 +7,40 @@ using namespace Eigen;
 using namespace std;
 
 const double DataAcquisition::kRawToReal = 2.0;
+Eigen::Matrix<double, 6, 6> DataAcquisition::kTransformMatrix = MatrixXd::Zero(6, 6);
 
 DataAcquisition::DataAcquisition() {
 	int status;
-	status = DAQmxCreateTask("", &m_task_handle);
-	status = DAQmxCreateAIVoltageChan(m_task_handle, kPressureForceChannel, "",
-									  DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
-	status = DAQmxCfgSampClkTiming(m_task_handle, NULL, 100, DAQmx_Val_Rising,
-								   DAQmx_Val_ContSamps, 2);
+	//status = DAQmxCreateTask("", &m_task_handle);
+	//status = DAQmxCreateAIVoltageChan(m_task_handle, kPressureForceChannel, "",
+	//								  DAQmx_Val_RSE, -10, 10, DAQmx_Val_Volts, NULL);
+	//status = DAQmxCfgSampClkTiming(m_task_handle, NULL, 100, DAQmx_Val_Rising,
+	//							   DAQmx_Val_ContSamps, 2);
 
-	status = DAQmxSetReadRelativeTo(m_task_handle, DAQmx_Val_MostRecentSamp);
-	status = DAQmxSetReadOffset(m_task_handle, 0);
-	status = DAQmxStartTask(m_task_handle);
-	status = DAQmxStopTask(m_task_handle);
+	//status = DAQmxSetReadRelativeTo(m_task_handle, DAQmx_Val_MostRecentSamp);
+	//status = DAQmxSetReadOffset(m_task_handle, 0);
+	//status = DAQmxStartTask(m_task_handle);
+	//status = DAQmxStopTask(m_task_handle);
 
+	//¡˘Œ¨¡¶
+	status = DAQmxCreateTask("", &s_task_handle);
+	status = DAQmxCreateAIVoltageChan(s_task_handle, six_dimension_force_channel, "",
+		DAQmx_Val_Diff, -10, 10, DAQmx_Val_Volts, NULL);
+	status = DAQmxCfgSampClkTiming(s_task_handle, NULL, 100, DAQmx_Val_Rising,
+		DAQmx_Val_ContSamps, 2);
+
+	status = DAQmxSetReadRelativeTo(s_task_handle, DAQmx_Val_MostRecentSamp);
+	status = DAQmxSetReadOffset(s_task_handle, 0);
+	status = DAQmxStartTask(s_task_handle);
+	status = DAQmxStopTask(s_task_handle);
+
+	//≥ı ºªØ±‰ªªæÿ’Û
+	kTransformMatrix << 0.09692, -0.10635, 0.52011, 47.49211, 0.15094, -47.35115,
+		0.22184, -54.45397, -0.35906, 27.02136, 0.21803, 27.46034,
+		64.42479, -0.39683, 63.49878, -0.09020, 65.20982, -1.84716,
+		-0.00948, -0.00277, -1.15283, 0.00340, 1.14574, -0.03061,
+		1.29493, -0.02196, -0.68483, -0.01380, -0.63174, 0.00974,
+		-0.00283, 0.98940, 0.00518, 1.00811, -0.00211, 1.00804;
 }
 
 DataAcquisition::~DataAcquisition() {
@@ -82,34 +102,31 @@ void DataAcquisition::AcquisiteSixDemensionData(double output_buf[6]) {
 	int32 read = 0;
 	int status = 0;
 	double raw_data[6];
-	status = DAQmxCreateTask("SixDemensionDataTask", &taskHandle);
-	status = DAQmxCreateAIVoltageChan(taskHandle, six_dimension_force_channel, "PullDataChannel", DAQmx_Val_Diff, -10, 10, DAQmx_Val_Volts, NULL);
-	status = DAQmxCfgSampClkTiming(taskHandle, "OnboardClock", 1000, DAQmx_Val_Rising, DAQmx_Val_ContSamps, 10);
+	/*status = DAQmxCreateTask("SixDemensionDataTask", &taskHandle);
+	status = DAQmxCreateAIVoltageChan(taskHandle, kSixDimensionForceChannel, "SixDimensionChannel", DAQmx_Val_Diff, -10, 10, DAQmx_Val_Volts, NULL);
+	status = DAQmxCfgSampClkTiming(taskHandle, "OnboardClock", 100, DAQmx_Val_Rising, DAQmx_Val_ContSamps, 1);
 	status = DAQmxStartTask(taskHandle);
 	status = DAQmxReadAnalogF64(taskHandle, 1, 0.2, DAQmx_Val_GroupByScanNumber, raw_data, 6, &read, NULL);
 	status = DAQmxStopTask(taskHandle);
-	status = DAQmxClearTask(taskHandle);
+	status = DAQmxClearTask(taskHandle);*/
+	status = DAQmxReadAnalogF64(s_task_handle, 1, 0.2, DAQmx_Val_GroupByScanNumber, raw_data, 6, &read, NULL);
+	//cout << "status is : " << status << endl;
+	//char buffer[256];
+	//DAQmxGetErrorString(status, buffer, 256);
+	//cout << "error code is : " << buffer << endl;
 
-	//º∆À„
-	Matrix<double, 6, 6> m;
-	m << 0.08729, -0.00137, 0.59422, 47.13000, 0.06298, -47.92455,
-		0.77953, -54.66462, 0.13566, 27.25556, 0.51927, 27.55145,
-		65.33104, 1.23854, 64.00936, -0.70825, 65.17850, -1.71349,
-		-0.06931, -0.07835, -1.20443, 0.02817, 1.08440, 0.01389,
-		1.34213, 0.01130, -0.59052, -0.04531, -0.61663, 0.05584,
-		-0.01694, 1.06263, 0.00710, 1.01083, -0.00028, 0.94187;
+	//AllocConsole();
+	//freopen("CONOUT$", "w", stdout);
+	//printf("%lf    %lf    %lf    %lf    %lf    %lf \n", raw_data[0], raw_data[1], raw_data[2], raw_data[3], raw_data[4], raw_data[5]);
+
 	Matrix<double, 6, 1> dat;
 	for (int i = 0; i < 6; ++i) {
 		dat(i, 0) = raw_data[i];
 	}
 
 	VectorXd result(6);
-	result = m * dat;
+	result = kTransformMatrix * dat;
 
-	//ºı»•∆´÷√
-	VectorXd bias(6);
-	bias << 12.0295, 18.6972, -82.3837, -1.92185, 1.24067, 0.6300;
-	result = result - bias;
 
 	for (int i = 0; i < 6; ++i) {
 		output_buf[i] = result(i);
