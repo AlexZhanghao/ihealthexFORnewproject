@@ -3,4 +3,5 @@ x64
 Debug
 Temp
 ihealthEx/x64
+ihealthEx/Debug
 *.db
